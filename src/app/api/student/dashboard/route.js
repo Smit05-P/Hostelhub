@@ -6,11 +6,16 @@ import Fee from "@/models/Fee";
 import Complaint from "@/models/Complaint";
 import Notice from "@/models/Notice";
 import mongoose from "mongoose";
+import fs from "fs";
+import path from "path";
 
-const titleCase = (value = "") => value
-  .split("_")
-  .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-  .join(" ");
+const titleCase = (value) => {
+  if (!value) return "";
+  return String(value)
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
 
 export async function GET() {
   try {
@@ -33,37 +38,62 @@ export async function GET() {
     const student = await Student.findById(studentId).select('hostelId').lean();
     const hostelId = student?.hostelId;
 
-    const [profile, fees, complaints, notices] = await Promise.all([
-      Student.findById(studentId)
+    let profile = null, fees = [], complaints = [], notices = [];
+    
+    try {
+      profile = await Student.findById(studentId)
         .select('name email phone address hostelId roomId rentAmount hostelStatus status profileImage enrollmentId arrivalDate duration termEndDate daysLeft joiningDate balance')
         .populate('roomId', 'roomNumber capacity rent status')
-        .lean(),
-      Fee.find({ studentId })
+        .lean();
+    } catch (e) {
+      console.error('Student query failed:', e);
+      throw new Error(`Student query failed: ${e.message}`);
+    }
+
+    try {
+      fees = await Fee.find({ studentId })
         .select('amount month year status dueDate createdAt isTotalStayFee adminRemarks')
         .sort({ year: -1, month: -1, createdAt: -1 })
         .limit(6)
-        .lean(),
-      Complaint.find({ studentId })
+        .lean();
+    } catch (e) {
+      console.error('Fee query failed:', e);
+      throw new Error(`Fee query failed: ${e.message}`);
+    }
+
+    try {
+      complaints = await Complaint.find({ studentId })
         .select('subject category status remarks createdAt')
         .sort({ createdAt: -1 })
         .limit(4)
-        .lean(),
-      hostelId ? Notice.find({ hostelId: new mongoose.Types.ObjectId(hostelId) })
-        .sort({ date: -1, createdAt: -1 })
-        .limit(3)
-        .lean() : [],
-    ]);
+        .lean();
+    } catch (e) {
+      console.error('Complaint query failed:', e);
+      throw new Error(`Complaint query failed: ${e.message}`);
+    }
+
+    if (hostelId) {
+      try {
+        notices = await Notice.find({ hostelId })
+          .sort({ date: -1, createdAt: -1 })
+          .limit(3)
+          .lean();
+      } catch (e) {
+        console.error('Notice query failed:', e);
+        throw new Error(`Notice query failed: ${e.message}`);
+      }
+    }
 
     if (!profile) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
     const room = profile.roomId || null;
-    const normalizedFees = fees.map((fee) => ({
+    const normalizedFees = (fees || []).map((fee) => ({
       ...fee,
       status: titleCase(fee.status),
     }));
-    const normalizedComplaints = complaints.map((complaint) => ({
+    const normalizedComplaints = (complaints || []).map((complaint) => ({
       ...complaint,
       status: titleCase(complaint.status),
       response: complaint.remarks || null,
@@ -81,7 +111,7 @@ export async function GET() {
       room,
       fees: normalizedFees,
       complaints: normalizedComplaints,
-      notices,
+      notices: notices || [],
       currentFee,
     }, {
       headers: {
@@ -92,6 +122,15 @@ export async function GET() {
     });
   } catch (error) {
     console.error('GET /api/student/dashboard error:', error);
-    return NextResponse.json({ error: 'Failed to fetch student dashboard data' }, { status: 500 });
+    try {
+      fs.appendFileSync('dashboard-error.log', `[${new Date().toISOString()}] ${error.stack}\n`);
+    } catch (e) {
+      console.error('Failed to write to log file:', e);
+    }
+    return NextResponse.json({ 
+      error: 'Failed to fetch student dashboard data', 
+      details: error.message,
+      stack: error.stack
+    }, { status: 500 });
   }
 }

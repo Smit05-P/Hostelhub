@@ -195,7 +195,7 @@ const ResponseModal = ({ complaint, onClose, onSubmit }) => {
               onClick={onClose} 
               className="p-2.5 sm:p-3 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-900"
             >
-              <X size={20} sm:size={24} />
+              <X size={24} />
             </button>
           </div>
 

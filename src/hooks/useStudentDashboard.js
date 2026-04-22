@@ -14,8 +14,14 @@ export function useStudentDashboard() {
       const res = await fetch("/api/student/dashboard");
       
       if (!res.ok) {
-        console.error("[DASHBOARD-HOOK] Failed to fetch:", res.status);
-        throw new Error(`Failed to fetch student dashboard: ${res.status}`);
+        let errorData;
+        try {
+          errorData = await res.json();
+        } catch (e) {
+          errorData = { error: "Could not parse error response" };
+        }
+        console.error("[DASHBOARD-HOOK] Failed to fetch:", res.status, errorData);
+        throw new Error(errorData.details || errorData.error || `Failed to fetch student dashboard: ${res.status}`);
       }
       
       const data = await res.json();

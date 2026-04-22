@@ -54,58 +54,97 @@ ${JSON.stringify(fees.map(f => ({ student: f.studentId?.name, amount: f.amount, 
       }))
     ];
 
-    const openrouter = new OpenRouter({
-      apiKey: process.env.OPENROUTER_API_KEY
-    });
-
-    // Fallback chain: if one model is rate-limited (429), try the next
-    const FREE_MODELS = [
-      "meta-llama/llama-3.3-70b-instruct:free",
-      "google/gemma-3-27b-it:free",
-      "qwen/qwen3-coder:free",
-      "nousresearch/hermes-3-llama-3.1-405b:free",
-      "openai/gpt-oss-20b:free",
-    ];
-
     let finalContent = "";
     let lastError = null;
 
-    for (const model of FREE_MODELS) {
+    // --- PROVIDER 1: DIRECT GOOGLE GEMINI (Most Reliable Free Tier) ---
+    if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
       try {
-        console.log(`[Intel] Trying model: ${model}`);
-        const stream = await openrouter.chat.send({
-          chatRequest: {
-            model,
-            messages: formattedMessages,
-            stream: true
-          }
+        console.log("[Intel] Attempting Direct Google Gemini API...");
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GOOGLE_GENERATIVE_AI_API_KEY}`;
+        
+        const response = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{
+              role: "user",
+              parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${messages[messages.length - 1].content}` }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048,
+            }
+          })
         });
 
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content;
-          if (content) finalContent += content;
-        }
-
-        if (finalContent) {
-          console.log(`[Intel] Success with model: ${model}`);
-          break; // Got a valid response, stop trying
+        const data = await response.json();
+        if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+          finalContent = data.candidates[0].content.parts[0].text;
+          console.log("[Intel] Success with Direct Gemini API");
+        } else if (data.error) {
+          console.warn("[Intel] Gemini API Error:", data.error.message);
+          lastError = new Error(data.error.message);
         }
       } catch (err) {
-        const msg = err?.message || String(err);
-        console.warn(`[Intel] Model ${model} failed: ${msg}`);
+        console.warn("[Intel] Gemini API failed to connect:", err.message);
         lastError = err;
-        // If rate-limited, provider error, or model unavailable, try next model
-        if (msg.includes("429") || msg.includes("Provider returned error") || msg.includes("rate-limit") || msg.includes("No endpoints found") || msg.includes("temporarily")) {
-          continue;
+      }
+    }
+
+    // --- PROVIDER 2: OPENROUTER FALLBACK (Multi-Model Rotation) ---
+    if (!finalContent) {
+      const openrouter = new OpenRouter({
+        apiKey: process.env.OPENROUTER_API_KEY
+      });
+
+      const FREE_MODELS = [
+        "google/gemini-2.0-flash-exp:free",
+        "deepseek/deepseek-r1:free",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "qwen/qwen3-coder:free",
+        "google/gemma-3-27b-it:free",
+      ];
+
+      for (const model of FREE_MODELS) {
+        try {
+          console.log(`[Intel] Attempting OpenRouter auto-switch: ${model}`);
+          const stream = await openrouter.chat.send({
+            chatRequest: {
+              model,
+              messages: formattedMessages,
+              stream: true
+            }
+          });
+
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content;
+            if (content) finalContent += content;
+          }
+
+          if (finalContent) {
+            console.log(`[Intel] Success with OpenRouter model: ${model}`);
+            break;
+          }
+        } catch (err) {
+          const msg = err?.message || String(err);
+          console.warn(`[Intel] OpenRouter ${model} failed: ${msg}`);
+          lastError = err;
+          
+          if (msg.includes("429") || msg.includes("limit") || msg.includes("Provider") || msg.includes("overloaded") || msg.includes("temporarily")) {
+            continue;
+          }
+          break; // Stop if it's a fatal key error
         }
-        throw err; // Non-rate-limit errors should bubble up immediately
       }
     }
 
     if (!finalContent) {
-      const hint = lastError?.message || "All free model providers are currently rate-limited.";
+      const hint = lastError?.message || "All AI providers (Google & OpenRouter) are at capacity.";
       return NextResponse.json(
-        { error: `Intel is temporarily unavailable. All free AI providers are overloaded. Please try again in a few minutes. (${hint})` },
+        { error: `Intel is busy. All free AI systems are currently overloaded. Please add a GOOGLE_GENERATIVE_AI_API_KEY for higher limits, or try again later. (${hint})` },
         { status: 503 }
       );
     }

@@ -4,13 +4,15 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, Send, Sparkles, Loader2, Bot, User, 
-  MessageSquare, Terminal, Zap, Info
+  MessageSquare, Terminal, Zap, Info, Download, FileText, Copy
 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function IntelSidebar({ isOpen, onClose }) {
   const { activeHostelId, role } = useAuth();
@@ -59,6 +61,184 @@ export default function IntelSidebar({ isOpen, onClose }) {
     }
   };
 
+  const downloadMessage = (content, filename = "intel-response.md") => {
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Download started");
+  };
+
+  const downloadEntireChat = () => {
+    const content = messages.map(m => `### ${m.role === 'user' ? 'USER' : 'INTEL'}\n\n${m.content}\n\n---\n`).join("\n");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    downloadMessage(content, `hostelhub-intel-chat-${timestamp}.md`);
+  };
+
+  const downloadPDF = (content, title = "Intel Intelligence Report") => {
+    const doc = new jsPDF();
+    const timestamp = new Date().toLocaleString();
+    
+    // Header
+    doc.setFillColor(79, 70, 229); // Indigo-600
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("HOSTELHUB INTEL", 20, 20);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generated on: ${timestamp}`, 20, 30);
+    doc.text(`Subject: ${title}`, 20, 35);
+
+    let cursorY = 50;
+    doc.setTextColor(30, 41, 59); // Slate-800
+    
+    // Split content into blocks of text and tables
+    const lines = content.split('\n');
+    let tableLines = [];
+    let isTable = false;
+
+    const flushTable = () => {
+      if (tableLines.length < 2) return;
+      
+      const headers = tableLines[0].split('|').filter(cell => cell.trim() !== '').map(cell => cell.trim());
+      const rows = tableLines.slice(2).map(line => 
+        line.split('|').filter((_, index, array) => index > 0 && index < array.length - 1).map(cell => cell.trim())
+      );
+
+      autoTable(doc, {
+        startY: cursorY,
+        head: [headers],
+        body: rows,
+        margin: { left: 20, right: 20 },
+        styles: { fontSize: 9, font: "helvetica" },
+        headStyles: { fillStyle: 'F', fillColor: [79, 70, 229], textColor: 255 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        didDrawPage: (data) => {
+          cursorY = data.cursor.y;
+        }
+      });
+      
+      cursorY = (doc.lastAutoTable?.finalY || cursorY) + 10;
+      tableLines = [];
+      isTable = false;
+    };
+
+    const sanitizeText = (text) => {
+      if (!text) return "";
+      return text
+        .replace(/₹/g, "Rs. ")
+        .replace(/&/g, "&")
+        .replace(/</g, "<")
+        .replace(/>/g, ">")
+        .replace(/[\u2018\u2019]/g, "'") // Smart quotes
+        .replace(/[\u201C\u201D]/g, '"') // Smart quotes
+        .replace(/\u2013/g, "-") // En dash
+        .replace(/\u2014/g, "--") // Em dash
+        .trim();
+    };
+
+    const renderTextWithBold = (text, x, y, maxWidth) => {
+      const parts = text.split(/(\*\*.*?\*\*)/g);
+      let currentX = x;
+      
+      parts.forEach(part => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          doc.setFont("helvetica", "bold");
+          const cleanPart = part.replace(/\*\*/g, "");
+          doc.text(cleanPart, currentX, y);
+          currentX += doc.getTextWidth(cleanPart);
+        } else {
+          doc.setFont("helvetica", "normal");
+          doc.text(part, currentX, y);
+          currentX += doc.getTextWidth(part);
+        }
+      });
+      return y + 7;
+    };
+
+    lines.forEach((line, index) => {
+      const trimmed = line.trim();
+      
+      // Detect Role Headers
+      if (trimmed.startsWith('[USER]') || trimmed.startsWith('[INTEL]')) {
+        if (cursorY > 260) { doc.addPage(); cursorY = 25; }
+        doc.setFillColor(trimmed.includes('INTEL') ? 240 : 248, 242, 255);
+        doc.rect(20, cursorY - 5, 170, 8, 'F');
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(trimmed.includes('INTEL') ? 79 : 100, 70, 229);
+        doc.text(trimmed, 25, cursorY);
+        cursorY += 12;
+        return;
+      }
+
+      const isTableLine = trimmed.startsWith('|') && trimmed.endsWith('|');
+
+      if (isTableLine) {
+        isTable = true;
+        tableLines.push(line.replace(/₹/g, "Rs. "));
+      } else {
+        if (isTable) flushTable();
+
+        if (trimmed !== '') {
+          doc.setFontSize(11);
+          doc.setTextColor(30, 41, 59);
+          
+          // Improved Header Detection
+          if (trimmed.startsWith('###') || trimmed.startsWith('**')) {
+             doc.setFont("helvetica", "bold");
+             doc.setTextColor(15, 23, 42);
+          } else {
+             doc.setFont("helvetica", "normal");
+          }
+
+          const cleanLine = trimmed.replace(/###/g, "").replace(/^>\s?/gm, "");
+          const splitLines = doc.splitTextToSize(cleanLine, 170);
+          
+          splitLines.forEach(l => {
+            if (cursorY > 275) { doc.addPage(); cursorY = 25; }
+            
+            // Handle bold within lines
+            if (l.includes('**')) {
+               cursorY = renderTextWithBold(l, 20, cursorY, 170);
+            } else {
+               doc.text(l, 20, cursorY);
+               cursorY += 7;
+            }
+          });
+        } else if (trimmed === '') {
+          cursorY += 4;
+        }
+      }
+
+      if (index === lines.length - 1 && isTable) flushTable();
+    });
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`Page ${i} of ${pageCount} | Official HostelHub Intelligence Report | ${new Date().toLocaleDateString()}`, 105, 290, { align: "center" });
+    }
+
+    doc.save(`intel-report-${new Date().getTime()}.pdf`);
+    toast.success("Premium PDF Exported");
+  };
+
+  const downloadEntireChatPDF = () => {
+    const content = messages.map(m => `[${m.role === 'user' ? 'USER' : 'INTEL'}]\n${m.content}\n\n------------------\n`).join("\n");
+    downloadPDF(content, "Full Conversation Logs");
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -94,9 +274,25 @@ export default function IntelSidebar({ isOpen, onClose }) {
                   </div>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <button 
+                  onClick={downloadEntireChatPDF}
+                  title="Download Chat as PDF"
+                  className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-rose-600"
+                >
+                  <FileText size={20} />
+                </button>
+                <button 
+                  onClick={downloadEntireChat}
+                  title="Download Chat as Markdown"
+                  className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-indigo-600"
+                >
+                  <Download size={20} />
+                </button>
+                <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Chat Area */}
@@ -116,11 +312,40 @@ export default function IntelSidebar({ isOpen, onClose }) {
                   }`}>
                     {m.role === 'user' ? <User size={14} /> : <Bot size={14} />}
                   </div>
-                  <div className={`max-w-[85%] p-4 rounded-2xl text-[13px] leading-relaxed shadow-sm ${
+                  <div className={`relative group max-w-[85%] p-4 rounded-2xl text-[13px] leading-relaxed shadow-sm ${
                     m.role === 'user' 
                       ? 'bg-indigo-600 text-white rounded-tr-none' 
                       : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none'
                   }`}>
+                    {/* Message Action Bar */}
+                    {m.role === 'model' && (
+                      <div className="absolute -right-12 top-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(m.content);
+                            toast.success("Copied to clipboard");
+                          }}
+                          className="p-2 text-slate-300 hover:text-indigo-600 transition-colors"
+                          title="Copy Content"
+                        >
+                          <Copy size={16} />
+                        </button>
+                        <button 
+                          onClick={() => downloadPDF(m.content, "AI Response Detail")}
+                          className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
+                          title="Download as PDF"
+                        >
+                          <FileText size={16} />
+                        </button>
+                        <button 
+                          onClick={() => downloadMessage(m.content)}
+                          className="p-2 text-slate-300 hover:text-emerald-500 transition-colors"
+                          title="Download as Markdown"
+                        >
+                          <Download size={16} />
+                        </button>
+                      </div>
+                    )}
                     <div className="prose prose-sm max-w-none prose-slate">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
