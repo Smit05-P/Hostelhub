@@ -2,10 +2,6 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
-}
-
 const globalForMongoose = globalThis;
 
 if (!globalForMongoose.__mongooseCache) {
@@ -18,6 +14,10 @@ if (!globalForMongoose.__mongooseCache) {
 const cached = globalForMongoose.__mongooseCache;
 
 async function dbConnect() {
+  if (!MONGODB_URI) {
+    throw new Error("Please define the MONGODB_URI environment variable inside .env.local (or Vercel Environment Variables)");
+  }
+
   if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
