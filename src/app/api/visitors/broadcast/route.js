@@ -75,32 +75,35 @@ export async function POST(request) {
     const visitTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
     // Create a hostel-wide visitor log entry so it appears in both admin and student visitor modules.
-    const visitorEntry = await Visitor.create({
-      hostelId: hostelObjectId,
-      studentId: null,
-      studentName: "HOSTEL-WIDE",
-      roomNo: location || "MANAGEMENT",
-      visitorName,
-      visitorPhone: "",
-      relation: visitorType,
-      visitDate: now,
-      visitTime,
-      expectedDuration: 60,
-      purpose,
-      notes: notes || "Broadcast created by admin.",
-      status: "Completed",
-      checkInTime: now,
-      adminNote: "Broadcast entry",
-    });
+    // ONLY create a new record if we don't already have one for this specific broadcast today.
+    // If it's a general broadcast (SECURITY PROTOCOL), we create a marker.
+    // If it's for a specific visitor, we should ideally not create a duplicate.
+    
+    let visitorEntry = null;
+    const isGeneralBroadcast = visitorName === "SECURITY PROTOCOL";
+    
+    if (isGeneralBroadcast) {
+      visitorEntry = await Visitor.create({
+        hostelId: hostelObjectId,
+        studentId: null,
+        studentName: "HOSTEL-WIDE",
+        roomNo: location || "MANAGEMENT",
+        visitorName,
+        visitorPhone: "",
+        relation: visitorType,
+        visitDate: now,
+        visitTime,
+        expectedDuration: 60,
+        purpose,
+        notes: notes || "Broadcast created by admin.",
+        status: "Completed",
+        checkInTime: now,
+        adminNote: "Broadcast entry",
+      });
+    }
 
-    await Notice.create({
-      title,
-      description: message,
-      date: timestamp,
-      hostelId: hostelObjectId,
-      priority: ["low", "medium", "high"].includes(priority) ? priority : "high",
-      category: "Security",
-    });
+    // REMOVED: Notice.create - Visitor requests should only show in Visitor module, not Notice module.
+
 
     const recipientGroups = [];
     if (audience === "all_students") {

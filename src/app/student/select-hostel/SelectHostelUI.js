@@ -20,8 +20,10 @@ import {
   Info
 } from "lucide-react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function SelectHostelUI() {
+  const router = useRouter();
   const { user, role, activeHostelId, refreshStudentHostel, refreshUser, logout, loading: authLoading, userData } = useAuth();
   const { addToast } = useToast();
 
@@ -136,14 +138,24 @@ export default function SelectHostelUI() {
         await refreshUser();
         if (status === "Approved" && hostelId) {
           await refreshStudentHostel(hostelId);
+          router.replace("/student/dashboard");
+        } else {
+          router.replace("/student/pending");
         }
       } else {
         throw new Error(message || "Unexpected response from server");
       }
     } catch (error) {
-      console.error("Submission Error:", error);
-      const errorMsg = error.response?.data?.error || error.message || "Failed to process request.";
-      addToast(errorMsg, "error");
+      if (error.response?.status === 409) {
+        // Silently intercept 409 (Already applied) to prevent console noise
+        addToast(error.response?.data?.error || "You already have a pending or approved request.", "info");
+        await refreshUser();
+        router.replace("/student/pending");
+      } else {
+        console.error("Submission Error:", error);
+        const errorMsg = error.response?.data?.error || error.message || "Failed to process request.";
+        addToast(errorMsg, "error");
+      }
     } finally {
       setJoiningCode(false);
       setRequestingHostelId(null);

@@ -12,10 +12,38 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function NotificationsPage() {
-  const { notifications, markAsRead, markAllRead, clearAll, deleteNotification } = useNotification();
+  const { notifications, markAsRead, markAllRead, clearAll, deleteNotification, isLoading } = useNotification();
   const [filter, setFilter] = useState("all"); // 'all', 'unread', 'read'
   const router = useRouter();
+
+  if (isLoading && notifications.length === 0) {
+    return (
+      <div className="space-y-12 max-w-5xl mx-auto w-full pb-20">
+        <SkeletonHero />
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+           <div className="flex items-center gap-8 px-6 border-b border-slate-100">
+              <Shimmer className="w-24 h-14" />
+              <Shimmer className="w-24 h-14" />
+              <Shimmer className="w-24 h-14" />
+           </div>
+           <div className="p-6 space-y-6">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex gap-4 p-4 border-b border-slate-50 last:border-0">
+                   <Shimmer className="w-10 h-10 rounded-xl" />
+                   <div className="flex-1 space-y-2">
+                      <Shimmer className="w-1/2 h-4 rounded" />
+                      <Shimmer className="w-3/4 h-3 rounded" />
+                   </div>
+                </div>
+              ))}
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   const getIcon = (type) => {
     switch(type) {

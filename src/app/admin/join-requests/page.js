@@ -31,6 +31,8 @@ import {
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function JoinRequestsPage() {
   const { activeHostelId, isInitialized } = useAuth();
   const [requests, setRequests] = useState([]);
@@ -114,16 +116,30 @@ export default function JoinRequestsPage() {
   const approvedCount = (requests || []).filter(r => (r.status || "").toLowerCase() === "approved").length;
   const rejectedCount = (requests || []).filter(r => (r.status || "").toLowerCase() === "rejected").length;
 
-  if (!isInitialized || (isInitialized && !activeHostelId && loading)) {
+  if (loading && requests.length === 0) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-1000">
-        <div className="relative">
-          <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full animate-pulse" />
-          <Loader2 size={64} className="text-indigo-600 animate-spin relative z-10" />
+      <div className="p-4 sm:p-8 space-y-12 max-w-7xl mx-auto pb-32">
+        <SkeletonHero />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <SkeletonCard />
+           <SkeletonCard />
+           <SkeletonCard />
         </div>
-        <div className="text-center space-y-3 relative z-10">
-          <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Resolving Faculty Nexus</h2>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Syncing authorized streams & facility data...</p>
+        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl p-10 space-y-8">
+           <Shimmer className="w-full h-16 rounded-3xl" />
+           {Array.from({ length: 6 }).map((_, i) => (
+             <div key={i} className="flex items-center gap-6 py-4 border-b border-slate-50">
+                <Shimmer className="w-16 h-16 rounded-2xl" />
+                <div className="flex-1 space-y-3">
+                  <Shimmer className="w-1/3 h-5 rounded-lg" />
+                  <Shimmer className="w-1/4 h-3 rounded-lg" />
+                </div>
+                <div className="flex gap-2">
+                  <Shimmer className="w-24 h-10 rounded-2xl" />
+                  <Shimmer className="w-24 h-10 rounded-2xl" />
+                </div>
+             </div>
+           ))}
         </div>
       </div>
     );

@@ -51,7 +51,7 @@ export default function AdminLayout({ children }) {
           </div>
           
           <main className="flex-1 overflow-y-auto relative scrollbar-hide">
-             <div className="max-w-[1600px] mx-auto px-4 sm:px-8 py-6 sm:py-10 animate-fade-in translate-y-4 duration-700 forwards">
+             <div className="max-w-[1600px] mx-auto px-4 sm:px-8 py-4 sm:py-6 animate-fade-in">
                 {children}
              </div>
           </main>

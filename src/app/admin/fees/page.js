@@ -30,6 +30,8 @@ const ITEM_VARIANTS = {
   }
 };
 
+import { SkeletonHero, Shimmer } from "@/components/ui/Skeleton";
+
 export default function AdminFeesPage() {
   const { addToast } = useToast();
   const { activeHostelId } = useAuth();
@@ -102,6 +104,7 @@ export default function AdminFeesPage() {
     a.download = `HostelHub_Ledger_${dateStr}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    a.remove();
   };
 
   const filteredPayments = useMemo(() => {
@@ -115,16 +118,34 @@ export default function AdminFeesPage() {
 
   if (loading && payments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-48 gap-8">
-        <div className="relative">
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-20 h-20 border-[6px] border-emerald-600/10 border-t-emerald-600 rounded-full" 
-          />
-          <DollarSign className="absolute inset-0 m-auto text-emerald-600 animate-pulse" size={24} />
+      <div className="space-y-12 pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+           <div className="lg:col-span-5 bg-slate-100 rounded-[3rem] h-[320px] p-10 space-y-8 overflow-hidden">
+              <Shimmer className="w-1/3 h-10 rounded-2xl" />
+              <Shimmer className="w-2/3 h-20 rounded-3xl" />
+           </div>
+           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-200/60 shadow-sm space-y-6">
+                   <Shimmer className="w-12 h-12 rounded-2xl" />
+                   <Shimmer className="w-full h-8 rounded-full" />
+                </div>
+              ))}
+           </div>
         </div>
-        <p className="font-black uppercase tracking-[0.5em] text-[12px] text-slate-400 italic">Synchronizing Institutional Ledger...</p>
+        <div className="bg-white rounded-[3rem] sm:rounded-[4.5rem] border border-slate-200 shadow-2xl p-10 space-y-8">
+           <Shimmer className="w-full h-16 rounded-3xl" />
+           {Array.from({ length: 5 }).map((_, i) => (
+             <div key={i} className="flex items-center gap-6 py-4 border-b border-slate-50">
+                <Shimmer className="w-16 h-16 rounded-2xl" />
+                <div className="flex-1 space-y-3">
+                  <Shimmer className="w-1/3 h-5 rounded-lg" />
+                  <Shimmer className="w-1/4 h-3 rounded-lg" />
+                </div>
+                <Shimmer className="w-24 h-10 rounded-2xl" />
+             </div>
+           ))}
+        </div>
       </div>
     );
   }

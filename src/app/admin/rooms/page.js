@@ -21,6 +21,8 @@ const AmenityIcon = ({ name }) => {
   return <Icon size={12} className="text-slate-400 group-hover:text-blue-500 transition-colors" />;
 };
 
+import { SkeletonHero, Shimmer } from "@/components/ui/Skeleton";
+
 export default function RoomsPage() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,11 +101,27 @@ export default function RoomsPage() {
 
   const floors = useMemo(() => ["All", ...new Set((rooms || []).map(r => String(r.floor || "0")))].sort(), [rooms]);
 
-  if (loading) {
+  if (loading && rooms.length === 0) {
     return (
-      <div className="py-32 flex flex-col items-center justify-center gap-6 text-slate-500">
-        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-        <p className="font-bold uppercase tracking-widest text-[12px] italic">Syncing Facility Assets...</p>
+      <div className="p-4 sm:p-8 space-y-12 max-w-7xl mx-auto pb-32">
+        <SkeletonHero />
+        <Shimmer className="w-full h-24 rounded-[2.5rem]" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+           {Array.from({ length: 8 }).map((_, i) => (
+             <div key={i} className="bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm p-8 space-y-8">
+                <div className="flex justify-between">
+                  <Shimmer className="w-1/3 h-10 rounded-xl" />
+                  <Shimmer className="w-1/4 h-6 rounded-lg" />
+                </div>
+                <Shimmer className="w-full h-20 rounded-3xl" />
+                <div className="flex gap-2">
+                  <Shimmer className="w-12 h-6 rounded-lg" />
+                  <Shimmer className="w-12 h-6 rounded-lg" />
+                </div>
+                <Shimmer className="w-full h-12 rounded-2xl" />
+             </div>
+           ))}
+        </div>
       </div>
     );
   }

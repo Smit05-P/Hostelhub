@@ -83,6 +83,27 @@ export async function POST(request) {
     });
     
     console.log("[NOTICE_CREATE] Success:", notice._id);
+
+    // Notify all students
+    try {
+      const { notificationService } = require("@/services/server/notificationService");
+      await notificationService.createNotification({
+        hostelId: finalHostelId.toString(),
+        recipientId: "all_students",
+        recipientRole: "student",
+        senderId: session.userId,
+        senderRole: "admin",
+        senderName: "Admin",
+        type: "notice_created",
+        title: "New Notice Posted",
+        message: `${title} - ${description.substring(0, 100)}${description.length > 100 ? '...' : ''}`,
+        actionUrl: "/student/notices"
+      });
+      console.log("[NOTICE_CREATE] Notification sent to all students");
+    } catch (notifErr) {
+      console.error("[NOTICE_CREATE] Failed to send notification:", notifErr);
+      // Non-fatal, continue returning success for notice creation
+    }
     
     return NextResponse.json({ 
       success: true,

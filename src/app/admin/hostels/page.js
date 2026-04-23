@@ -275,6 +275,8 @@ const FeeSettingsModal = ({ isOpen, onClose, hostel, onSuccess }) => {
 };
 
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function HostelCollectionPage() {
   const { switchHostel, logout, userData, activeHostelId, user } = useAuth();
   const { addToast } = useToast();
@@ -305,12 +307,63 @@ export default function HostelCollectionPage() {
 
   if (isHostelsLoading && hostels.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8FAFC] gap-8">
-        <div className="relative">
-          <div className="w-20 h-20 border-[5px] border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin"></div>
-          <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-indigo-500 animate-pulse" size={20} />
-        </div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] animate-pulse">Synchronizing Grid...</p>
+      <div className="min-h-screen bg-[#F8FAFC]">
+        <nav className="sticky top-0 z-[100] bg-white/70 backdrop-blur-2xl border-b border-slate-200/50 px-6 py-4 flex items-center justify-between">
+           <div className="flex items-center gap-4">
+              <Shimmer className="w-10 h-10 rounded-xl" />
+              <div className="space-y-2">
+                 <Shimmer className="w-24 h-4 rounded" />
+                 <Shimmer className="w-16 h-3 rounded" />
+              </div>
+           </div>
+           <Shimmer className="w-32 h-10 rounded-xl" />
+        </nav>
+        <main className="max-w-7xl mx-auto px-6 py-20 space-y-16">
+           <div className="space-y-6">
+              <Shimmer className="w-48 h-6 rounded-full" />
+              <Shimmer className="w-2/3 h-20 rounded-2xl" />
+              <Shimmer className="w-1/2 h-6 rounded-xl" />
+           </div>
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+              <div className="bg-white p-8 rounded-[2rem] border border-slate-200 space-y-4">
+                 <Shimmer className="w-14 h-14 rounded-2xl" />
+                 <Shimmer className="w-1/2 h-10 rounded-xl" />
+                 <Shimmer className="w-1/3 h-4 rounded" />
+              </div>
+              <div className="bg-white p-8 rounded-[2rem] border border-slate-200 space-y-4">
+                 <Shimmer className="w-14 h-14 rounded-2xl" />
+                 <Shimmer className="w-1/2 h-10 rounded-xl" />
+                 <Shimmer className="w-1/3 h-4 rounded" />
+              </div>
+              <div className="bg-white p-8 rounded-[2rem] border border-slate-200 space-y-4">
+                 <Shimmer className="w-14 h-14 rounded-2xl" />
+                 <Shimmer className="w-1/2 h-10 rounded-xl" />
+                 <Shimmer className="w-1/3 h-4 rounded" />
+              </div>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-200 space-y-8">
+                   <div className="flex justify-between">
+                      <Shimmer className="w-14 h-14 rounded-2xl" />
+                      <Shimmer className="w-24 h-8 rounded-full" />
+                   </div>
+                   <div className="space-y-3">
+                      <Shimmer className="w-2/3 h-8 rounded-xl" />
+                      <Shimmer className="w-1/2 h-4 rounded" />
+                   </div>
+                   <div className="space-y-4 pt-8 border-t border-slate-50">
+                      <Shimmer className="w-full h-14 rounded-2xl" />
+                      <div className="grid grid-cols-2 gap-4">
+                         <Shimmer className="h-16 rounded-2xl" />
+                         <Shimmer className="h-16 rounded-2xl" />
+                      </div>
+                      <Shimmer className="w-full h-14 rounded-[1.5rem]" />
+                   </div>
+                </div>
+              ))}
+           </div>
+        </main>
       </div>
     );
   }

@@ -112,6 +112,8 @@ const RoomCard = ({ room, onAllocate, onDeallocate }) => {
   );
 };
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function AdminAllocationPage() {
   const { addToast } = useToast();
   const { activeHostelId } = useAuth();
@@ -190,18 +192,38 @@ export default function AdminAllocationPage() {
 
   if (loading && rooms.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-48 gap-8">
-        <div className="relative">
-          <motion.div 
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-20 h-20 rounded-[2rem] bg-indigo-600 flex items-center justify-center text-white shadow-2xl shadow-indigo-500/20"
-          >
-            <LayoutGrid size={36} />
-          </motion.div>
-          <Zap className="absolute -top-3 -right-3 text-indigo-500 animate-pulse" size={24} />
+      <div className="p-4 sm:p-8 space-y-12 max-w-7xl mx-auto pb-32">
+        <SkeletonHero />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+           <SkeletonCard />
+           <SkeletonCard />
+           <SkeletonCard />
+           <SkeletonCard />
         </div>
-        <p className="font-black uppercase tracking-[0.5em] text-[12px] text-slate-400 italic">Mapping Spatial Nodes...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+           {Array.from({ length: 8 }).map((_, i) => (
+             <div key={i} className="bg-white rounded-[2rem] border border-slate-200 p-8 space-y-8">
+                <div className="flex justify-between items-start">
+                   <div className="space-y-3">
+                      <Shimmer className="w-16 h-4 rounded-lg" />
+                      <Shimmer className="w-24 h-8 rounded-xl" />
+                   </div>
+                   <Shimmer className="w-12 h-12 rounded-2xl" />
+                </div>
+                <div className="space-y-3">
+                   <Shimmer className="w-full h-4 rounded-full" />
+                   <div className="flex gap-2">
+                      <Shimmer className="w-12 h-12 rounded-full" />
+                      <Shimmer className="w-12 h-12 rounded-full" />
+                   </div>
+                </div>
+                <div className="flex justify-between items-center pt-6 border-t border-slate-50">
+                   <Shimmer className="w-16 h-6 rounded-lg" />
+                   <Shimmer className="w-24 h-10 rounded-2xl" />
+                </div>
+             </div>
+           ))}
+        </div>
       </div>
     );
   }

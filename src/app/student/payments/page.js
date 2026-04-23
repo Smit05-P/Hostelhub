@@ -318,6 +318,8 @@ const PaymentSummaryCard = ({ label, value, sub, icon: Icon, colorClass, delay }
   </motion.div>
 );
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function StudentPaymentsPage() {
   const { user, hostelStatus, activeHostelData, refreshUser } = useAuth();
   const [fees, setFees] = useState([]);
@@ -351,6 +353,42 @@ export default function StudentPaymentsPage() {
   useEffect(() => { if (hostelStatus === "APPROVED") fetchData(); else setLoading(false); }, [fetchData, hostelStatus]);
 
   if (hostelStatus !== "APPROVED") return <div className="p-20 text-center italic font-black uppercase text-slate-400">Restricted Node Access: Pending Approval</div>;
+
+  if (loading && fees.length === 0) {
+    return (
+      <div className="p-4 sm:p-8 space-y-12 max-w-7xl mx-auto pb-32">
+        <SkeletonHero />
+        <div className="flex flex-col md:flex-row gap-6 sm:gap-8">
+           <SkeletonCard />
+           <SkeletonCard />
+           <SkeletonCard />
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          <div className="xl:col-span-8 bg-white rounded-[3.5rem] border border-slate-200 shadow-2xl p-10 space-y-8">
+             <Shimmer className="w-full h-16 rounded-3xl" />
+             {Array.from({ length: 5 }).map((_, i) => (
+               <div key={i} className="flex items-center gap-6 py-4 border-b border-slate-50">
+                  <Shimmer className="w-16 h-16 rounded-2xl" />
+                  <div className="flex-1 space-y-3">
+                    <Shimmer className="w-1/3 h-5 rounded-lg" />
+                    <Shimmer className="w-1/4 h-3 rounded-lg" />
+                  </div>
+                  <Shimmer className="w-24 h-10 rounded-2xl" />
+               </div>
+             ))}
+          </div>
+          <div className="xl:col-span-4 space-y-8">
+            <div className="bg-white p-10 rounded-[3.5rem] border border-slate-200 shadow-2xl h-[400px] flex flex-col gap-8">
+               <Shimmer className="w-1/3 h-10 rounded-full" />
+               {Array.from({ length: 3 }).map((_, i) => (
+                 <Shimmer key={i} className="w-full h-16 rounded-[1.5rem]" />
+               ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div 

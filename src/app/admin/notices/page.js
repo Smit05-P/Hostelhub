@@ -31,6 +31,8 @@ const ITEM_VARIANTS = {
   }
 };
 
+import { SkeletonHero, Shimmer } from "@/components/ui/Skeleton";
+
 export default function AdminNoticesPage() {
   const { addToast } = useToast();
   const { activeHostelId } = useAuth();
@@ -140,16 +142,21 @@ export default function AdminNoticesPage() {
 
   if (loading && notices.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-48 gap-8">
-        <div className="relative">
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-20 h-20 border-[6px] border-indigo-600/10 border-t-indigo-600 rounded-full" 
-          />
-          <Megaphone className="absolute inset-0 m-auto text-indigo-600 animate-pulse" size={24} />
+      <div className="p-4 sm:p-8 space-y-12 pb-32">
+        <SkeletonHero />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-[3.5rem] border border-slate-200 shadow-xl p-10 space-y-6">
+              <Shimmer className="w-1/4 h-6 rounded-xl" />
+              <Shimmer className="w-full h-8 rounded-xl" />
+              <Shimmer className="w-full h-24 rounded-3xl" />
+              <div className="flex justify-between pt-6">
+                <Shimmer className="w-24 h-10 rounded-2xl" />
+                <Shimmer className="w-12 h-12 rounded-2xl" />
+              </div>
+            </div>
+          ))}
         </div>
-        <p className="font-black uppercase tracking-[0.5em] text-[12px] text-slate-400 italic">Synchronizing Institutional Node Feed...</p>
       </div>
     );
   }
@@ -197,157 +204,141 @@ export default function AdminNoticesPage() {
                  className={`px-10 py-5 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.3em] transition-all transform hover:-translate-y-1 active:scale-95 shadow-2xl flex items-center justify-center gap-4 italic shrink-0 ${
                    showForm 
                      ? 'bg-rose-500 text-white shadow-rose-500/20' 
-                     : 'bg-white text-indigo-950 hover:bg-indigo-50'
+                     : 'bg-indigo-600 text-white hover:bg-indigo-500'
                  }`}
                >
                  {showForm ? <X size={20} strokeWidth={3} /> : <Plus size={20} strokeWidth={3} />} 
-                 {showForm ? "ABORT BROADCAST" : "INITIATE TRANSMISSION"}
+                 {showForm ? "CANCEL" : "CREATE NOTICE"}
                </button>
-            </div>
-         </div>
-
-         {/* Search & Utility Bar */}
-         <div className="bg-white rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 shadow-xl p-4 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center gap-6">
-            <div className="flex-1 relative group">
-               <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
-               <input 
-                 type="text" 
-                 placeholder="FILTER ACTIVE LOGS..." 
-                 value={searchQuery} 
-                 onChange={(e) => setSearchQuery(e.target.value)}
-                 className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] italic focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none"
-               />
-            </div>
-            
-            <div className="flex items-center gap-4 px-6 border-l border-slate-100 hidden md:flex">
-               <div className="flex flex-col text-right">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">ACTIVE NODES</span>
-                  <span className="text-[12px] font-black text-slate-900 uppercase italic">ONLINE</span>
-               </div>
-               <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                  <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-               </div>
             </div>
          </div>
       </div>
 
-      {/* Notice Modal (Drawer on Mobile) */}
+      {/* Inline Notice Form */}
       <AnimatePresence>
         {showForm && (
-          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/90 backdrop-blur-xl"
-              onClick={() => { setShowForm(false); resetForm(); }}
-            />
-            
-            <motion.div 
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-2xl bg-white rounded-t-[3rem] sm:rounded-[3.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
-            >
-              <div className="p-8 sm:p-12 bg-slate-900 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                
-                <div className="flex justify-between items-start mb-8 relative z-10">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-white/10 backdrop-blur-xl">
-                    <Zap size={28} />
-                  </div>
-                  <button onClick={() => { setShowForm(false); resetForm(); }} className="p-3 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-xl transition-all border border-white/5">
-                    <X size={24} />
-                  </button>
-                </div>
-                
-                <h2 className="text-3xl sm:text-5xl font-black italic tracking-tighter uppercase mb-2 relative z-10">
-                  {isEditing ? "MODIFY SIGNAL" : "SYSTEM BROADCAST"}
-                </h2>
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] italic relative z-10">Institutional Communication Protocol</p>
-              </div>
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-white rounded-[3rem] border-2 border-indigo-100 shadow-2xl overflow-hidden mb-12">
+               <div className="p-6 sm:p-10 bg-slate-900 text-white relative overflow-hidden">
+                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                 <div className="flex justify-between items-center relative z-10">
+                   <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-white/10">
+                       <Zap size={24} />
+                     </div>
+                     <h2 className="text-2xl sm:text-3xl font-black italic tracking-tighter uppercase leading-none">
+                       {isEditing ? "EDIT NOTICE" : "NEW NOTICE"}
+                     </h2>
+                   </div>
+                   <button onClick={() => { setShowForm(false); resetForm(); }} className="p-3 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-xl transition-all">
+                     <X size={24} />
+                   </button>
+                 </div>
+               </div>
 
-              <div className="p-8 sm:p-12 overflow-y-auto custom-scrollbar bg-slate-50">
-                <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 italic">Signal Subject</label>
-                    <input
-                      type="text"
-                      name="title"
-                      required
-                      placeholder="ENTER DIRECTIVE TITLE..."
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      className="w-full bg-white border-2 border-slate-100 rounded-[1.5rem] px-8 py-5 text-sm font-black text-slate-900 focus:outline-none focus:border-indigo-500 transition-all shadow-sm placeholder:text-slate-300 italic uppercase"
-                    />
-                  </div>
+               <div className="p-8 sm:p-12 bg-slate-50">
+                 <form onSubmit={handleSubmit} className="space-y-8">
+                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                     <div className="space-y-6">
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 italic">Subject</label>
+                           <input
+                             type="text" name="title" required
+                             placeholder="ENTER NOTICE TITLE..."
+                             value={formData.title}
+                             onChange={handleInputChange}
+                             className="w-full bg-white border-2 border-slate-100 rounded-2xl px-8 py-5 text-sm font-black text-slate-900 focus:outline-none focus:border-indigo-500 transition-all italic uppercase"
+                           />
+                        </div>
+                        <div className="grid grid-cols-2 gap-6">
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 italic">Category</label>
+                              <select
+                                name="category" value={formData.category} onChange={handleInputChange}
+                                className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-[10px] font-black text-slate-900 focus:outline-none focus:border-indigo-500 transition-all uppercase tracking-widest cursor-pointer"
+                              >
+                                <option value="General">GENERAL</option>
+                                <option value="Maintenance">MAINTENANCE</option>
+                                <option value="Billing">BILLING</option>
+                                <option value="Security">SECURITY</option>
+                                <option value="Events">EVENTS</option>
+                              </select>
+                           </div>
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 italic">Priority</label>
+                              <select
+                                name="priority" value={formData.priority} onChange={handleInputChange}
+                                className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-[10px] font-black text-slate-900 focus:outline-none focus:border-indigo-500 transition-all uppercase tracking-widest cursor-pointer"
+                              >
+                                <option value="low">LOW</option>
+                                <option value="medium">NORMAL</option>
+                                <option value="high">URGENT</option>
+                              </select>
+                           </div>
+                        </div>
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 italic">Notice Content</label>
+                        <textarea
+                          name="description" required
+                          placeholder="BROADCAST DETAILS..."
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          className="w-full h-full min-h-[200px] bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-500 transition-all resize-none italic leading-relaxed"
+                        />
+                     </div>
+                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 italic">Class</label>
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-[10px] font-black text-slate-900 focus:outline-none focus:border-indigo-500 transition-all shadow-sm uppercase tracking-widest cursor-pointer"
-                      >
-                        <option value="General">GENERAL</option>
-                        <option value="Maintenance">MAINTENANCE</option>
-                        <option value="Billing">BILLING</option>
-                        <option value="Security">SECURITY</option>
-                        <option value="Events">EVENTS</option>
-                      </select>
-                    </div>
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 italic">Priority Tier</label>
-                      <select
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleInputChange}
-                        className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-[10px] font-black text-slate-900 focus:outline-none focus:border-indigo-500 transition-all shadow-sm uppercase tracking-widest cursor-pointer"
-                      >
-                        <option value="low">LOW PULSE</option>
-                        <option value="medium">NOMINAL</option>
-                        <option value="high">CRITICAL</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2 italic">Payload Content</label>
-                    <textarea
-                      name="description"
-                      required
-                      placeholder="BROADCAST DETAILS..."
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      className="w-full h-40 sm:h-56 bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 text-sm font-bold text-slate-700 focus:outline-none focus:border-indigo-500 transition-all shadow-sm placeholder:text-slate-300 resize-none italic leading-relaxed"
-                    />
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex-[2] py-5 sm:py-6 bg-slate-900 text-white rounded-[1.5rem] sm:rounded-[2rem] text-[11px] font-black uppercase tracking-[0.3em] italic hover:bg-indigo-600 hover:text-white transition-all shadow-xl shadow-indigo-500/10 disabled:opacity-50"
-                    >
-                      {isSubmitting ? "TRANSMITTING..." : (isEditing ? "COMMIT UPDATES" : "EXECUTE BROADCAST")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setShowForm(false); resetForm(); }}
-                      className="flex-1 py-5 sm:py-6 bg-white text-slate-400 rounded-[1.5rem] sm:rounded-[2rem] text-[11px] font-black uppercase tracking-[0.3em] italic border-2 border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all"
-                    >
-                      DISCARD
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </motion.div>
-          </div>
+                   <div className="flex flex-col sm:flex-row gap-6 pt-6 border-t border-slate-200">
+                     <button
+                       type="submit" disabled={isSubmitting}
+                       className="flex-[2] py-6 bg-slate-900 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] italic hover:bg-indigo-600 transition-all shadow-2xl disabled:opacity-50"
+                     >
+                       {isSubmitting ? "PROCESSING..." : (isEditing ? "UPDATE NOTICE" : "CREATE NOTICE")}
+                     </button>
+                     <button
+                       type="button" onClick={() => { setShowForm(false); resetForm(); }}
+                       className="flex-1 py-6 bg-white text-slate-400 rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] italic border-2 border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all"
+                     >
+                       DISCARD
+                     </button>
+                   </div>
+                 </form>
+               </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Search & Utility Bar */}
+      <div className="bg-white rounded-[2.5rem] sm:rounded-[3.5rem] border border-slate-200 shadow-xl p-4 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center gap-6">
+        <div className="flex-1 relative group">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+          <input 
+            type="text" 
+            placeholder="FILTER ACTIVE LOGS..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] italic focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none"
+          />
+        </div>
+        
+        <div className="flex items-center gap-4 px-6 border-l border-slate-100 hidden md:flex">
+          <div className="flex flex-col text-right">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">ACTIVE NODES</span>
+            <span className="text-[12px] font-black text-slate-900 uppercase italic">ONLINE</span>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center">
+            <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+          </div>
+        </div>
+      </div>
+
 
       {/* Notices Stream */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 sm:gap-10">

@@ -6,12 +6,11 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import StudentSidebar from "@/components/StudentSidebar";
 import TopNavbar from "@/components/TopNavbar";
 import StudentMobileNav from "@/components/StudentMobileNav";
-import IntelSidebar from "@/components/intel/IntelSidebar";
-import IntelFAB from "@/components/intel/IntelFAB";
+
 
 export default function StudentLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isIntelOpen, setIsIntelOpen] = useState(false);
+
   const pathname = usePathname();
 
   // The hostel-selection page is full-screen and standalone
@@ -45,7 +44,7 @@ export default function StudentLayout({ children }) {
           </div>
           
           <main suppressHydrationWarning className="flex-1 overflow-y-auto overflow-x-hidden relative scrollbar-hide">
-             <div suppressHydrationWarning className="max-w-[1400px] mx-auto px-4 sm:px-8 py-6 sm:py-10 animate-fade-in translate-y-4 duration-700 forwards">
+             <div suppressHydrationWarning className="max-w-[1400px] mx-auto px-4 sm:px-8 py-4 sm:py-6 animate-fade-in">
                 {children}
              </div>
           </main>
@@ -54,9 +53,7 @@ export default function StudentLayout({ children }) {
         {/* Mobile Navigation Hub */}
         <StudentMobileNav />
 
-        {/* HostelHub Intel - AI Assistant */}
-        <IntelSidebar isOpen={isIntelOpen} onClose={() => setIsIntelOpen(false)} />
-        <IntelFAB onClick={() => setIsIntelOpen(true)} />
+
       </div>
     </ProtectedRoute>
   );

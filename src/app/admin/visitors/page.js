@@ -32,6 +32,8 @@ const ITEM_VARIANTS = {
   }
 };
 
+import { SkeletonHero, Shimmer } from "@/components/ui/Skeleton";
+
 export default function AdminVisitorsPage() {
   const { addToast } = useToast();
   const { activeHostelId } = useAuth();
@@ -42,7 +44,8 @@ export default function AdminVisitorsPage() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [selectedVisitor, setSelectedVisitor] = useState(null);
-
+  const [broadcastingIds, setBroadcastingIds] = useState(new Set());
+  const [updatingIds, setUpdatingIds] = useState(new Set());
 
   const fetchVisitors = async (showLoading = true) => {
     if (!activeHostelId) {
@@ -60,11 +63,12 @@ export default function AdminVisitorsPage() {
     }
   };
 
-
-
   useEffect(() => { fetchVisitors(); }, [activeHostelId]);
 
   const handleStatusUpdate = async (id, newStatus) => {
+    if (updatingIds.has(id)) return;
+    
+    setUpdatingIds(prev => new Set(prev).add(id));
     try {
       await visitorService.updateStatus(id, newStatus);
       const displayStatus = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).toLowerCase();
@@ -72,6 +76,12 @@ export default function AdminVisitorsPage() {
       fetchVisitors(false);
     } catch (err) {
       addToast("Update failed.", "error");
+    } finally {
+      setUpdatingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
@@ -112,6 +122,33 @@ export default function AdminVisitorsPage() {
     }
   };
 
+  const handleRowBroadcast = async (v) => {
+    if (broadcastingIds.has(v._id)) return;
+    
+    setBroadcastingIds(prev => new Set(prev).add(v._id));
+    try {
+      const activeCount = visitors.filter(v => v.status === 'Pending' || v.status === 'Approved').length;
+      await axios.post("/api/visitors/broadcast", {
+        hostelId: activeHostelId,
+        guestCountHint: activeCount,
+        visitorName: v.visitorName,
+        visitorType: v.visitorType || "Guest",
+        purpose: v.purpose,
+        location: v.roomNo || "Main Lobby",
+        audience: "all_users",
+      });
+      addToast(`Broadcast transmitted for ${v.visitorName}.`, "success");
+    } catch (err) {
+      addToast("Broadcast failed.", "error");
+    } finally {
+      setBroadcastingIds(prev => {
+        const next = new Set(prev);
+        next.delete(v._id);
+        return next;
+      });
+    }
+  };
+
 
 
 
@@ -144,16 +181,30 @@ export default function AdminVisitorsPage() {
 
   if (loading && visitors.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-48 gap-8">
-        <div className="relative">
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-20 h-20 border-[6px] border-slate-900/10 border-t-slate-900 rounded-full" 
-          />
-          <ShieldCheck className="absolute inset-0 m-auto text-slate-900 animate-pulse" size={24} />
+      <div className="space-y-12 pb-24 max-w-[1600px] mx-auto">
+        <SkeletonHero />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+           {Array.from({ length: 4 }).map((_, i) => (
+             <div key={i} className="bg-white p-10 rounded-[2.5rem] border border-slate-200/60 shadow-sm space-y-6">
+                <Shimmer className="w-12 h-12 rounded-2xl" />
+                <Shimmer className="w-full h-4 rounded-full" />
+                <Shimmer className="w-full h-10 rounded-xl" />
+             </div>
+           ))}
         </div>
-        <p className="font-black uppercase tracking-[0.5em] text-[12px] text-slate-400 italic">Syncing Security Visitor Hub...</p>
+        <div className="bg-white rounded-[4rem] border border-slate-200 shadow-2xl p-10 space-y-8">
+           <Shimmer className="w-full h-16 rounded-3xl" />
+           {Array.from({ length: 5 }).map((_, i) => (
+             <div key={i} className="flex items-center gap-6 py-4 border-b border-slate-50">
+                <Shimmer className="w-16 h-16 rounded-2xl" />
+                <div className="flex-1 space-y-3">
+                  <Shimmer className="w-1/3 h-5 rounded-lg" />
+                  <Shimmer className="w-1/4 h-3 rounded-lg" />
+                </div>
+                <Shimmer className="w-24 h-10 rounded-2xl" />
+             </div>
+           ))}
+        </div>
       </div>
     );
   }
@@ -377,36 +428,27 @@ export default function AdminVisitorsPage() {
                                    <>
                                      <button 
                                        onClick={() => handleStatusUpdate(v._id, 'Completed')}
-                                       className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm flex items-center justify-center border border-emerald-100"
+                                       disabled={updatingIds.has(v._id)}
+                                       className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm flex items-center justify-center border border-emerald-100 disabled:opacity-50"
                                      >
-                                        <Check size={20} />
+                                        {updatingIds.has(v._id) ? <Loader2 size={18} className="animate-spin" /> : <Check size={20} />}
                                      </button>
                                      <button 
                                        onClick={() => handleStatusUpdate(v._id, 'Rejected')}
-                                       className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm flex items-center justify-center border border-rose-100"
+                                       disabled={updatingIds.has(v._id)}
+                                       className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm flex items-center justify-center border border-rose-100 disabled:opacity-50"
                                      >
-                                        <X size={20} />
+                                        {updatingIds.has(v._id) ? <Loader2 size={18} className="animate-spin" /> : <X size={20} />}
                                      </button>
                                    </>
                                  )}
                                  <button 
-                                   onClick={() => {
-                                      const activeCount = visitors.filter(v => v.status === 'Pending' || v.status === 'Approved').length;
-                                      axios.post("/api/visitors/broadcast", {
-                                        hostelId: activeHostelId,
-                                        guestCountHint: activeCount,
-                                        visitorName: v.visitorName,
-                                        visitorType: v.visitorType || "Guest",
-                                        purpose: v.purpose,
-                                        location: v.roomNo || "Main Lobby",
-                                        audience: "all_users",
-                                      }).then(() => addToast(`Broadcast transmitted for ${v.visitorName}.`, "success"))
-                                        .catch(() => addToast("Broadcast failed.", "error"));
-                                   }}
-                                   className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all shadow-sm flex items-center justify-center border border-amber-100"
+                                   onClick={() => handleRowBroadcast(v)}
+                                   disabled={broadcastingIds.has(v._id)}
+                                   className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all shadow-sm flex items-center justify-center border border-amber-100 disabled:opacity-50"
                                    title="Protocol Broadcast"
                                  >
-                                    <Zap size={18} />
+                                    {broadcastingIds.has(v._id) ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
                                  </button>
                                  <button 
                                    onClick={() => handleDelete(v._id)}
@@ -437,22 +479,11 @@ export default function AdminVisitorsPage() {
                      <VisitorCard 
                        key={v._id} 
                        visitor={v} 
+                       updatingIds={updatingIds}
                        onSelect={() => setSelectedVisitor(v)}
                        onStatusUpdate={handleStatusUpdate}
                        onDelete={handleDelete}
-                       onBroadcast={() => {
-                          const activeCount = visitors.filter(v => v.status === 'Pending' || v.status === 'Approved').length;
-                          axios.post("/api/visitors/broadcast", {
-                            hostelId: activeHostelId,
-                            guestCountHint: activeCount,
-                            visitorName: v.visitorName,
-                            visitorType: v.visitorType || "Guest",
-                            purpose: v.purpose,
-                            location: v.roomNo || "Main Lobby",
-                            audience: "all_users",
-                          }).then(() => addToast(`Broadcast transmitted for ${v.visitorName}.`, "success"))
-                            .catch(() => addToast("Broadcast failed.", "error"));
-                       }}
+                       onBroadcast={() => handleRowBroadcast(v)}
                      />
                   ))
                )}
@@ -465,6 +496,7 @@ export default function AdminVisitorsPage() {
         {selectedVisitor && (
           <VisitorDetailModal 
             visitor={selectedVisitor} 
+            updatingIds={updatingIds}
             onClose={() => setSelectedVisitor(null)} 
             onStatusUpdate={handleStatusUpdate}
           />
@@ -475,7 +507,7 @@ export default function AdminVisitorsPage() {
   );
 };
 
-const VisitorCard = ({ visitor, onSelect, onStatusUpdate, onDelete, onBroadcast }) => {
+const VisitorCard = ({ visitor, updatingIds, onSelect, onStatusUpdate, onDelete, onBroadcast }) => {
   const [showActions, setShowActions] = useState(false);
 
   return (
@@ -557,13 +589,16 @@ const VisitorCard = ({ visitor, onSelect, onStatusUpdate, onDelete, onBroadcast 
           <div className="flex gap-2">
             <button 
               onClick={() => onStatusUpdate(visitor._id, 'Completed')}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest italic shadow-lg shadow-emerald-600/20"
+              disabled={updatingIds.has(visitor._id)}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest italic shadow-lg shadow-emerald-600/20 disabled:opacity-50 flex items-center gap-2"
             >
+              {updatingIds.has(visitor._id) && <Loader2 size={10} className="animate-spin" />}
               APPROVE
             </button>
             <button 
               onClick={() => onStatusUpdate(visitor._id, 'Rejected')}
-              className="px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[9px] font-black uppercase tracking-widest italic"
+              disabled={updatingIds.has(visitor._id)}
+              className="px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[9px] font-black uppercase tracking-widest italic disabled:opacity-50"
             >
               REJECT
             </button>
@@ -574,7 +609,7 @@ const VisitorCard = ({ visitor, onSelect, onStatusUpdate, onDelete, onBroadcast 
   );
 };
 
-const VisitorDetailModal = ({ visitor, onClose, onStatusUpdate }) => {
+const VisitorDetailModal = ({ visitor, updatingIds, onClose, onStatusUpdate }) => {
   const { addToast } = useToast();
   
   const handleShare = () => {
@@ -689,9 +724,10 @@ VERIFIED BY HOSTELHUB SECURITY CORE
             {visitor.status === 'Pending' && (
               <button 
                 onClick={() => { onStatusUpdate(visitor._id, 'Completed'); onClose(); }}
-                className="flex-1 py-4 sm:py-5 bg-indigo-600 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] italic hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20"
+                disabled={updatingIds.has(visitor._id)}
+                className="flex-1 py-4 sm:py-5 bg-indigo-600 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] italic hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50"
               >
-                MARK COMPLETED
+                {updatingIds.has(visitor._id) ? "PROCESSING..." : "MARK COMPLETED"}
               </button>
             )}
             <button 

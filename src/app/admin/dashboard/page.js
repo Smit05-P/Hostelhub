@@ -110,6 +110,8 @@ const QuickAction = memo(function QuickAction({ label, href, icon: Icon, color }
   );
 });
 
+import { SkeletonCard, SkeletonHero, Shimmer } from "@/components/ui/Skeleton";
+
 export default function AdminDashboardPage() {
   const defaultStats = {
     totalStudents: 0,
@@ -136,16 +138,46 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-48 gap-8">
-        <div className="relative">
-          <motion.div 
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-20 h-20 border-[6px] border-indigo-600/10 border-t-indigo-600 rounded-full" 
-          />
-          <Zap className="absolute inset-0 m-auto text-indigo-600 animate-pulse" size={24} />
+      <div className="space-y-12 pb-24">
+        <SkeletonHero />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
-        <p className="font-black uppercase tracking-[0.5em] text-[12px] text-slate-400 italic">Synchronizing Institutional Nodes...</p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-8 space-y-10">
+            <div className="premium-glass p-12 rounded-[3.5rem] border border-slate-200/60 shadow-xl h-[400px]">
+              <Shimmer className="w-1/3 h-8 rounded-full mb-8" />
+              <div className="flex items-end justify-between h-[200px] gap-8">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Shimmer key={i} className="flex-1 rounded-2xl" style={{ height: `${20 + Math.random() * 60}%` }} />
+                ))}
+              </div>
+            </div>
+            <div className="premium-glass p-12 rounded-[3.5rem] border border-slate-200/60 shadow-xl">
+               <Shimmer className="w-1/4 h-8 rounded-full mb-12" />
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                 {Array.from({ length: 4 }).map((_, i) => (
+                   <div key={i} className="p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm space-y-6">
+                     <Shimmer className="w-full h-4 rounded-full" />
+                     <Shimmer className="w-full h-12 rounded-xl" />
+                     <Shimmer className="w-1/2 h-3 rounded-full" />
+                   </div>
+                 ))}
+               </div>
+            </div>
+          </div>
+          <div className="lg:col-span-4 space-y-10">
+            <div className="premium-glass p-10 rounded-[3.5rem] border border-slate-200/60 shadow-xl h-[500px] flex flex-col items-center justify-center gap-10">
+              <Shimmer className="w-40 h-40 rounded-full" />
+              <Shimmer className="w-full h-20 rounded-[2rem]" />
+              <Shimmer className="w-full h-20 rounded-[2rem]" />
+              <Shimmer className="w-full h-16 rounded-[2rem]" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

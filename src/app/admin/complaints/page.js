@@ -291,6 +291,8 @@ const ResponseModal = ({ complaint, onClose, onSubmit }) => {
   );
 };
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function AdminComplaintsPage() {
   const { addToast } = useToast();
   const { activeHostelId } = useAuth();
@@ -362,18 +364,32 @@ export default function AdminComplaintsPage() {
 
   if (loading && complaints.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-48 gap-8">
-        <div className="relative">
-          <motion.div 
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-20 h-20 rounded-[2rem] bg-amber-500 flex items-center justify-center text-white shadow-2xl shadow-amber-500/20"
-          >
-            <MessageSquare size={36} />
-          </motion.div>
-          <Zap className="absolute -top-3 -right-3 text-amber-500 animate-pulse" size={24} />
+      <div className="p-4 sm:p-8 space-y-12 max-w-7xl mx-auto pb-32">
+        <SkeletonHero />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+           <SkeletonCard />
+           <SkeletonCard />
+           <SkeletonCard />
+           <SkeletonCard />
         </div>
-        <p className="font-black uppercase tracking-[0.5em] text-[12px] text-slate-400 italic">Syncing Resident Feedback Core...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+           {Array.from({ length: 6 }).map((_, i) => (
+             <div key={i} className="bg-white rounded-[3.5rem] border border-slate-200 shadow-xl p-10 space-y-8">
+                <div className="flex gap-4">
+                  <Shimmer className="w-16 h-16 rounded-3xl" />
+                  <div className="flex-1 space-y-3">
+                    <Shimmer className="w-1/2 h-4 rounded-lg" />
+                    <Shimmer className="w-1/3 h-4 rounded-lg" />
+                  </div>
+                </div>
+                <Shimmer className="w-full h-24 rounded-3xl" />
+                <div className="flex justify-between">
+                  <Shimmer className="w-1/4 h-8 rounded-xl" />
+                  <Shimmer className="w-1/4 h-8 rounded-xl" />
+                </div>
+             </div>
+           ))}
+        </div>
       </div>
     );
   }

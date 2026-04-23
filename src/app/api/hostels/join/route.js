@@ -116,6 +116,26 @@ export async function POST(request) {
         hostelStatus: "Pending"
       });
 
+      // Notify all admins about the new join request
+      try {
+        const { notificationService } = require("@/services/server/notificationService");
+        await notificationService.createNotification({
+          hostelId: targetHostel._id.toString(),
+          recipientId: "all_admins",
+          recipientRole: "admin",
+          senderId: studentId,
+          senderRole: "student",
+          senderName: data.userName || student.name,
+          type: "join_request",
+          title: "New Join Request",
+          message: `${data.userName || student.name} has requested to join ${targetHostel.name}.`,
+          actionUrl: "/admin/join-requests"
+        });
+        console.log("[JOIN_REQUEST] Notification sent to all admins");
+      } catch (notifErr) {
+        console.error("[JOIN_REQUEST] Failed to send notification:", notifErr);
+      }
+
       return NextResponse.json({
         success: true,
         status: "Pending",

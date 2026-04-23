@@ -107,11 +107,24 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleCredential = useCallback(async (credentialResponse) => {
+  const handleGoogleCredential = useCallback(async (tokenResponse) => {
+    if (tokenResponse.error) {
+       console.error("Google Auth Error:", tokenResponse.error);
+       toast.error("Google Sign-In was cancelled or failed.");
+       return;
+    }
+    
     setIsGoogleLoading(true);
     try {
+      // Fetch user profile using the access token
+      const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+      });
+      
+      const { sub: uid, email, name, picture: photoURL } = userInfoResponse.data;
+
       const response = await axios.post("/api/auth/google", {
-        credential: credentialResponse.credential,
+        uid, email, name, photoURL,
         role: role,
       });
 
@@ -121,7 +134,7 @@ export default function LoginPage() {
         const path = getRedirectPath(freshUser);
         router.replace(path);
       } else if (response.data.needsRole) {
-        setGoogleUser(response.data.googleUser);
+        setGoogleUser({ uid, email, displayName: name, photoURL });
         setIsRoleModalOpen(true);
       }
     } catch (error) {
@@ -135,27 +148,33 @@ export default function LoginPage() {
   // Load Google Identity Services script
   useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
+    if (!clientId) {
+      console.warn("NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing in environment variables.");
+      return;
+    }
 
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      window.google?.accounts.id.initialize({
+      window.googleTokenClient = window.google?.accounts.oauth2.initTokenClient({
         client_id: clientId,
+        scope: 'email profile openid',
         callback: handleGoogleCredential,
       });
     };
     document.head.appendChild(script);
-    return () => { document.head.removeChild(script); };
+    return () => { 
+      if (document.head.contains(script)) document.head.removeChild(script); 
+    };
   }, [handleGoogleCredential]);
 
   const handleGoogleSignIn = () => {
-    if (window.google?.accounts?.id) {
-      window.google.accounts.id.prompt();
+    if (window.googleTokenClient) {
+      window.googleTokenClient.requestAccessToken();
     } else {
-      toast.error("Google Sign-In is not available. Please try again.");
+      toast.error("Google Sign-In is not initialized. Please configure your Client ID.");
     }
   };
 

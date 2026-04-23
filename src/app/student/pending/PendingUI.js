@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { Clock, ArrowLeft, Building2, LogOut, Loader2, Sparkles } from "lucide-react";
+import { Clock, ArrowLeft, Building2, LogOut, Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,11 +14,13 @@ export default function PendingUI() {
   const [loading, setLoading] = useState(true);
 
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showApprovalPopup, setShowApprovalPopup] = useState(false);
+  const showPopupRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
     async function fetchRequest() {
-      if (!(user?._id || user?.id || user?.uid)) return;
+      if (!(user?._id || user?.id || user?.uid) || showPopupRef.current) return;
       try {
         const { data } = await axios.get(`/api/hostels/join-requests?studentId=${(user?._id || user?.id || user?.uid)}`);
         const req = data.requests?.[0] || null;
@@ -34,11 +36,12 @@ export default function PendingUI() {
           const refreshedStatus = (refreshedUser?.hostelStatus || normalizedStatus).toUpperCase().replace(/[-\s]/g, "_");
 
           if (refreshedStatus === "APPROVED") {
-            router.replace("/student/dashboard");
+            showPopupRef.current = true;
+            setShowApprovalPopup(true);
           } else {
             router.replace("/student/select-hostel");
           }
-          return true; 
+          return; 
         }
 
         setRequest(req);
@@ -195,6 +198,38 @@ export default function PendingUI() {
           </div>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {showApprovalPopup && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white rounded-[2rem] p-8 md:p-12 max-w-lg w-full shadow-2xl text-center border border-slate-100"
+            >
+              <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 size={48} />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight leading-tight">
+                Your profile is approved. Please relogin now.
+              </h2>
+              <button
+                onClick={() => {
+                  logout();
+                  router.replace("/login");
+                }}
+                className="w-full mt-8 py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-sm transition-all shadow-lg shadow-indigo-600/30"
+              >
+                Relogin Now
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

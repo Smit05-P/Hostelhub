@@ -94,63 +94,96 @@ ${JSON.stringify(fees.map(f => ({ student: f.studentId?.name, amount: f.amount, 
       }
     }
 
-    // --- PROVIDER 2: OPENROUTER NATIVE FALLBACK (Simplified & Robust) ---
+    // --- PROVIDER 2: OPENROUTER NATIVE FALLBACK (Streaming Enabled) ---
     if (!finalContent) {
       try {
-        const openrouter = new OpenRouter({
-          apiKey: process.env.OPENROUTER_API_KEY
-        });
-
-        // The sequence of models to try. OpenRouter will walk this list top-to-bottom.
-        // Expanded and re-ordered free models for better reliability
         const FREE_MODELS = [
+          "inclusionai/ling-2.6-flash:free",
           "deepseek/deepseek-r1:free",
-          "google/gemini-2.0-flash-lite-preview-02-05:free",
           "meta-llama/llama-3.3-70b-instruct:free",
-          "qwen/qwen-turbo:free",
-          "mistralai/mistral-7b-instruct:free",
-          "google/gemini-2.0-pro-exp-02-05:free",
         ];
 
-        console.log(`[Intel] Attempting OpenRouter Fallback sequence starting with ${FREE_MODELS[0]}...`);
+        console.log(`[Intel] Attempting Streaming via ${FREE_MODELS[0]}...`);
         
-        // Use a standard fetch to ensure extra_body and other OpenRouter features are passed correctly
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "HTTP-Referer": "https://hostelhub.vercel.app", // Optional, for OpenRouter rankings
+            "HTTP-Referer": "https://hostelhub.vercel.app",
             "X-Title": "HostelHub Intel",
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
             model: FREE_MODELS[0],
             messages: formattedMessages,
-            stream: false, // Switching to non-stream for more stable fallback handling
+            stream: true,
             models: FREE_MODELS,
             route: "fallback"
           })
         });
 
-        const data = await response.json();
-        
-        if (data.choices?.[0]?.message?.content) {
-          finalContent = data.choices[0].message.content;
-          console.log(`[Intel] Success via OpenRouter Native Fallback (${data.model})`);
-        } else if (data.error) {
-          throw new Error(data.error.message || "OpenRouter error");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error?.message || "OpenRouter streaming failed");
         }
 
+        // Return a streaming response to the client
+        const stream = new ReadableStream({
+          async start(controller) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split("\n");
+                
+                for (const line of lines) {
+                  if (line.startsWith("data: ")) {
+                    const dataStr = line.slice(6).trim();
+                    if (dataStr === "[DONE]") continue;
+                    
+                    try {
+                      const data = JSON.parse(dataStr);
+                      const content = data.choices?.[0]?.delta?.content || "";
+                      if (content) {
+                        controller.enqueue(new TextEncoder().encode(content));
+                      }
+                    } catch (e) {
+                      // Skip invalid JSON lines
+                    }
+                  }
+                }
+              }
+            } catch (err) {
+              controller.error(err);
+            } finally {
+              controller.close();
+            }
+          }
+        });
+
+        return new Response(stream, {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+          },
+        });
+
       } catch (err) {
-        console.warn(`[Intel] OpenRouter native fallback failed: ${err?.message}`);
+        console.warn(`[Intel] OpenRouter streaming failed: ${err?.message}`);
         lastError = err;
       }
     }
 
     if (!finalContent) {
-      const hint = lastError?.message || "All AI providers (Google & OpenRouter) are at capacity.";
+      const hint = lastError?.message || "All AI providers are currently overloaded.";
       return NextResponse.json(
-        { error: `Intel is busy. All free AI systems are currently overloaded. Please add a GOOGLE_GENERATIVE_AI_API_KEY for higher limits, or try again later. (${hint})` },
+        { error: `Intel is busy. ${hint}` },
         { status: 503 }
       );
     }
@@ -159,7 +192,7 @@ ${JSON.stringify(fees.map(f => ({ student: f.studentId?.name, amount: f.amount, 
   } catch (error) {
     console.error("AI Intel Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    return NextResponse.json({ error: `AI Engine Error: ${errorMessage}. Please check server logs.` }, { status: 500 });
+    return NextResponse.json({ error: `AI Engine Error: ${errorMessage}` }, { status: 500 });
   }
 }
 

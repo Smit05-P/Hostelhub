@@ -66,6 +66,8 @@ const ProtocolField = ({ label, value, icon: Icon, editing, register, name, erro
   </div>
 );
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function StudentProfilePage() {
   const { user, userData, refreshUser } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -144,7 +146,43 @@ export default function StudentProfilePage() {
     }
   };
 
-  if (loading) return <div className="p-20 text-center animate-pulse italic font-black uppercase text-slate-300">Synchronising Protocol Node...</div>;
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-8 space-y-12 max-w-7xl mx-auto pb-32">
+        <SkeletonHero />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+           <div className="lg:col-span-4 space-y-10">
+              <div className="bg-white p-10 rounded-[4rem] border border-slate-200 shadow-3xl flex flex-col items-center space-y-8">
+                 <Shimmer className="w-48 h-48 rounded-[3.5rem]" />
+                 <Shimmer className="w-1/2 h-8 rounded-xl" />
+                 <Shimmer className="w-1/3 h-6 rounded-lg" />
+              </div>
+              <div className="bg-slate-900 p-10 rounded-[4rem] h-[300px] flex flex-col gap-6">
+                 <Shimmer className="w-1/4 h-8 rounded-lg opacity-20" />
+                 <div className="grid grid-cols-2 gap-6">
+                    <Shimmer className="w-full h-24 rounded-3xl opacity-20" />
+                    <Shimmer className="w-full h-24 rounded-3xl opacity-20" />
+                 </div>
+              </div>
+           </div>
+           <div className="lg:col-span-8 bg-white p-16 rounded-[4.5rem] border border-slate-200 shadow-3xl space-y-12">
+              <div className="flex justify-between items-center">
+                 <Shimmer className="w-1/3 h-10 rounded-full" />
+                 <Shimmer className="w-32 h-12 rounded-2xl" />
+              </div>
+              <div className="grid grid-cols-2 gap-10">
+                 {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="space-y-4">
+                       <Shimmer className="w-1/4 h-4 rounded-lg" />
+                       <Shimmer className="w-full h-14 rounded-2xl" />
+                    </div>
+                 ))}
+              </div>
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div 

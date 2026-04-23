@@ -23,10 +23,32 @@ export async function PATCH(request, { params }) {
       data.checkOutTime = new Date();
     }
 
+    const oldVisitor = await Visitor.findById(id);
     const visitor = await Visitor.findByIdAndUpdate(id, data, { new: true });
     
     if (!visitor) {
       return NextResponse.json({ error: "Visitor record not found" }, { status: 404 });
+    }
+
+    // Notify student if status changed and the updater is an admin
+    if (session.role === 'admin' && data.status && (!oldVisitor || oldVisitor.status !== data.status)) {
+      try {
+        const { notificationService } = require("@/services/server/notificationService");
+        await notificationService.createNotification({
+          hostelId: visitor.hostelId.toString(),
+          recipientId: visitor.studentId.toString(),
+          recipientRole: "student",
+          senderId: session.userId,
+          senderRole: "admin",
+          senderName: "Admin",
+          type: "visitor_updated",
+          title: "Visitor Request Updated",
+          message: `Your visitor request for ${visitor.visitorName} is now ${data.status}.`,
+          actionUrl: "/student/visitors"
+        });
+      } catch (notifErr) {
+        console.error("Failed to notify student about visitor update:", notifErr);
+      }
     }
 
     return NextResponse.json(visitor);

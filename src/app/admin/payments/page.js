@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Plus, Trash2, Search, Filter, Loader2, CreditCard, Receipt, Calendar, User } from "lucide-react";
 import { useToast } from "@/contexts/ToastContext";
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function PaymentsPage() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,11 +55,32 @@ export default function PaymentsPage() {
     });
   }, [payments, searchQuery, statusFilter]);
 
-  if (loading) {
+  if (loading && (payments || []).length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest animate-pulse">Syncing Financial Records...</p>
+      <div className="p-8 space-y-12 max-w-7xl mx-auto pb-32">
+        <SkeletonHero />
+        <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200/50 flex justify-between items-center">
+           <Shimmer className="w-1/3 h-12 rounded-2xl" />
+           <Shimmer className="w-1/4 h-12 rounded-2xl" />
+        </div>
+        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+           <div className="p-10 space-y-8">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between gap-8 pb-8 border-b border-slate-50 last:border-0 last:pb-0">
+                   <div className="flex items-center gap-5 flex-1">
+                      <Shimmer className="w-12 h-12 rounded-2xl" />
+                      <div className="space-y-2">
+                         <Shimmer className="w-48 h-5 rounded-lg" />
+                         <Shimmer className="w-32 h-3 rounded-md" />
+                      </div>
+                   </div>
+                   <Shimmer className="w-24 h-8 rounded-xl" />
+                   <Shimmer className="w-32 h-6 rounded-lg" />
+                   <Shimmer className="w-20 h-10 rounded-xl" />
+                </div>
+              ))}
+           </div>
+        </div>
       </div>
     );
   }

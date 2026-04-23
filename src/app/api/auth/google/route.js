@@ -3,10 +3,21 @@ import dbConnect from "@/lib/mongodb";
 import Student from "@/models/Student";
 import Admin from "@/models/Admin";
 import { signToken, setAuthCookie } from "@/lib/auth";
+import jwt from "jsonwebtoken";
 
 export async function POST(req) {
   try {
-    const { uid, email, name, photoURL, role } = await req.json();
+    let { uid, email, name, photoURL, role, credential } = await req.json();
+
+    if (credential) {
+      const decoded = jwt.decode(credential);
+      if (decoded) {
+        email = decoded.email;
+        name = decoded.name;
+        photoURL = decoded.picture;
+        uid = decoded.sub;
+      }
+    }
 
     if (!email || !role) {
       return NextResponse.json({ error: "Missing required fields (email, role)" }, { status: 400 });

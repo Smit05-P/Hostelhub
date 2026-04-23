@@ -37,25 +37,59 @@ export default function IntelSidebar({ isOpen, onClose }) {
     if (!input.trim() || loading) return;
 
     const userMsg = { role: "user", content: input };
-    setMessages(prev => [...prev, userMsg]);
+    const initialAssistantMsg = { role: "model", content: "" };
+    
+    setMessages(prev => [...prev, userMsg, initialAssistantMsg]);
     setInput("");
     setLoading(true);
 
     try {
-      const res = await axios.post("/api/intel", {
-        messages: [...messages, userMsg],
-        hostelId: activeHostelId,
-        role: role
+      const response = await fetch("/api/intel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [...messages, userMsg],
+          hostelId: activeHostelId,
+          role: role
+        })
       });
 
-      setMessages(prev => [...prev, { role: "model", content: res.data.content }]);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to connect to Intel Node.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedContent += chunk;
+
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1] = { 
+            role: "model", 
+            content: accumulatedContent 
+          };
+          return newMessages;
+        });
+      }
     } catch (err) {
-      const errorMsg = err.response?.data?.error || "Connection to Intel Node failed.";
+      const errorMsg = err.message || "Connection to Intel Node failed.";
       toast.error(errorMsg);
-      setMessages(prev => [...prev, { 
-        role: "model", 
-        content: `Error: ${errorMsg}. Please ensure your API key is configured and try again.` 
-      }]);
+      setMessages(prev => {
+        const newMessages = [...prev];
+        newMessages[newMessages.length - 1] = { 
+          role: "model", 
+          content: `Error: ${errorMsg}. Please try again later.` 
+        };
+        return newMessages;
+      });
     } finally {
       setLoading(false);
     }
@@ -133,7 +167,8 @@ export default function IntelSidebar({ isOpen, onClose }) {
     const sanitizeText = (text) => {
       if (!text) return "";
       return text
-        .replace(/₹/g, "Rs. ")
+        .replace(/₹/g, "$")
+        .replace(/Rs\./g, "$")
         .replace(/&/g, "&")
         .replace(/</g, "<")
         .replace(/>/g, ">")
@@ -183,7 +218,7 @@ export default function IntelSidebar({ isOpen, onClose }) {
 
       if (isTableLine) {
         isTable = true;
-        tableLines.push(line.replace(/₹/g, "Rs. "));
+        tableLines.push(line.replace(/₹/g, "$").replace(/Rs\./g, "$"));
       } else {
         if (isTable) flushTable();
 
@@ -428,7 +463,7 @@ export default function IntelSidebar({ isOpen, onClose }) {
                   <button type="button" onClick={() => setInput("Who are the top debtors?")} className="text-[10px] font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest">Fees</button>
                 </div>
                 <div className="text-[9px] font-bold text-slate-300 flex items-center gap-1 uppercase tracking-widest">
-                  <Zap size={10} className="fill-slate-300" /> Powered by Gemini
+                  <Zap size={10} className="fill-slate-300" /> Powered by Intel Core
                 </div>
               </div>
             </div>

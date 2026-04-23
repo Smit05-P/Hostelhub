@@ -11,7 +11,7 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: "Unauthorized. Admin access required." }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { action, paymentMethod } = await request.json();
 
     await dbConnect();
@@ -21,17 +21,53 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: "Fee record not found" }, { status: 404 });
     }
 
+    const { notificationService } = require("@/services/server/notificationService");
+
     if (action === "mark_paid") {
       fee.status = "Paid";
       fee.paidAt = new Date();
       fee.paymentMethod = paymentMethod || "Cash";
       await fee.save();
+
+      // Notify student
+      try {
+        await notificationService.createNotification({
+          hostelId: fee.hostelId.toString(),
+          recipientId: fee.studentId.toString(),
+          recipientRole: "student",
+          senderId: session.userId,
+          senderRole: "admin",
+          senderName: "Finance Admin",
+          type: "fee_paid",
+          title: "Fee Payment Confirmed",
+          message: `Your fee payment for ${fee.month}/${fee.year} has been confirmed.`,
+          actionUrl: "/student/fees"
+        });
+      } catch (err) { console.error("Fee notification error:", err); }
+
       return NextResponse.json({ message: "Fee marked as paid", fee });
     }
 
     if (action === "mark_overdue") {
       fee.status = "Overdue";
       await fee.save();
+
+      // Notify student
+      try {
+        await notificationService.createNotification({
+          hostelId: fee.hostelId.toString(),
+          recipientId: fee.studentId.toString(),
+          recipientRole: "student",
+          senderId: session.userId,
+          senderRole: "admin",
+          senderName: "Finance Admin",
+          type: "fee_overdue",
+          title: "Fee Overdue Notice",
+          message: `Your fee for ${fee.month}/${fee.year} is marked as overdue.`,
+          actionUrl: "/student/fees"
+        });
+      } catch (err) { console.error("Fee notification error:", err); }
+
       return NextResponse.json({ message: "Fee marked as overdue", fee });
     }
 

@@ -9,7 +9,7 @@ import {
   Users, UserPlus, Clock, History, Search, 
   Filter, Zap, ShieldCheck, ShieldAlert, 
   Trash2, Plus, X, Camera, Loader2, 
-  MessageSquare, Calendar, ChevronRight,
+  MessageSquare, Calendar, ChevronRight, Eye,
   Database, Sparkles, MapPin, Phone,
   User as UserIcon, Building2, Inbox, Edit3,
   Timer, AlertCircle, CheckCircle2, RotateCcw
@@ -40,6 +40,8 @@ const MODAL_VARIANTS = {
 
 
 
+import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
+
 export default function StudentVisitorsPage() {
   const { user, userData } = useAuth();
   const { addToast } = useToast();
@@ -50,6 +52,7 @@ export default function StudentVisitorsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedVisitor, setSelectedVisitor] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 10000); // Update every 10s
@@ -95,6 +98,17 @@ export default function StudentVisitorsPage() {
     const interval = setInterval(fetchData, 30000); // Poll every 30s
     return () => clearInterval(interval);
   }, [user, userData]);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Abort this visitor request?")) return;
+    try {
+      await axios.delete(`/api/visitors/${id}`);
+      addToast("Request aborted successfully.", "info");
+      fetchData();
+    } catch (err) {
+      addToast("Failed to abort request.", "error");
+    }
+  };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -193,13 +207,24 @@ export default function StudentVisitorsPage() {
 
   if (loading && visitors.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="w-20 h-20 border-[6px] border-slate-900/10 border-t-indigo-600 rounded-full" 
-        />
-        <p className="font-black uppercase tracking-[0.4em] text-[10px] text-slate-400 italic">Syncing Security Protocol Hub...</p>
+      <div className="p-4 sm:p-8 space-y-12 max-w-7xl mx-auto pb-32">
+        <SkeletonHero />
+        <div className="bg-white rounded-[3.5rem] border border-slate-200 shadow-2xl p-10 space-y-8">
+           <Shimmer className="w-full h-16 rounded-3xl" />
+           {Array.from({ length: 5 }).map((_, i) => (
+             <div key={i} className="flex items-center gap-6 py-4 border-b border-slate-50">
+                <Shimmer className="w-16 h-16 rounded-2xl" />
+                <div className="flex-1 space-y-3">
+                  <Shimmer className="w-1/3 h-5 rounded-lg" />
+                  <Shimmer className="w-1/4 h-3 rounded-lg" />
+                </div>
+                <div className="flex gap-2">
+                  <Shimmer className="w-24 h-10 rounded-2xl" />
+                  <Shimmer className="w-12 h-10 rounded-2xl" />
+                </div>
+             </div>
+           ))}
+        </div>
       </div>
     );
   }
@@ -300,12 +325,6 @@ export default function StudentVisitorsPage() {
                                                 <Users size={10} /> {item.relation}
                                              </div>
                                           </div>
-
-                                          {(item.studentName === "HOSTEL-WIDE" || item.adminNote === "Broadcast entry") && (
-                                            <span className="inline-flex items-center mt-2 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 text-[9px] font-black uppercase tracking-[0.2em] italic">
-                                              Created By Admin
-                                            </span>
-                                          )}
                                        </div>
                                     </div>
                                  </td>
@@ -345,16 +364,35 @@ export default function StudentVisitorsPage() {
                                        {item.status}
                                     </div>
                                  </td>
-                                 <td className="px-10 py-8">
-                                    {item.status === 'Pending' && (
-                                      <button 
-                                        onClick={() => handleEdit(item)}
-                                        className="p-4 rounded-2xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
-                                      >
-                                        <Edit3 size={16} />
-                                      </button>
-                                    )}
-                                 </td>
+                                  <td className="px-10 py-8">
+                                     <div className="flex items-center gap-2">
+                                       <button 
+                                         onClick={() => setSelectedVisitor(item)}
+                                         className="p-3 rounded-2xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm active:scale-90"
+                                         title="View Details"
+                                       >
+                                         <Eye size={16} />
+                                       </button>
+                                       {item.status === 'Pending' && (
+                                         <>
+                                           <button 
+                                             onClick={() => handleEdit(item)}
+                                             className="p-3 rounded-2xl bg-slate-50 text-slate-400 hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-90"
+                                             title="Edit Request"
+                                           >
+                                             <Edit3 size={16} />
+                                           </button>
+                                           <button 
+                                             onClick={() => handleDelete(item._id)}
+                                             className="p-3 rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-90"
+                                             title="Abort Request"
+                                           >
+                                             <Trash2 size={16} />
+                                           </button>
+                                         </>
+                                       )}
+                                     </div>
+                                  </td>
                               </motion.tr>
                            ))
                         )}
@@ -496,6 +534,79 @@ export default function StudentVisitorsPage() {
                </motion.div>
             </div>
          )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedVisitor && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+               onClick={() => setSelectedVisitor(null)}
+             />
+             <motion.div 
+               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+               className="relative w-full max-w-lg bg-white rounded-[3rem] shadow-3xl overflow-hidden border border-slate-200"
+             >
+                <div className="p-10">
+                   <div className="flex justify-between items-start mb-8">
+                      <div className="flex items-center gap-6">
+                         <div className="w-20 h-20 rounded-[2rem] overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
+                            {selectedVisitor.visitorImage ? (
+                               <img src={selectedVisitor.visitorImage} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                               <div className="w-full h-full flex items-center justify-center text-2xl font-black text-slate-300">
+                                  {selectedVisitor.visitorName?.[0]}
+                               </div>
+                            )}
+                         </div>
+                         <div>
+                            <h3 className="text-2xl font-black text-slate-900 uppercase italic leading-none">{selectedVisitor.visitorName}</h3>
+                            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-2 italic">{selectedVisitor.relation}</p>
+                         </div>
+                      </div>
+                      <button onClick={() => setSelectedVisitor(null)} className="p-3 bg-slate-100 text-slate-400 rounded-2xl hover:bg-rose-50 hover:text-rose-500 transition-all">
+                         <X size={20} />
+                      </button>
+                   </div>
+
+                   <div className="space-y-4 mb-10">
+                      <div className="grid grid-cols-2 gap-4">
+                         <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Status</p>
+                            <p className="text-xs font-black text-slate-900 italic uppercase">{selectedVisitor.status}</p>
+                         </div>
+                         <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Date</p>
+                            <p className="text-xs font-black text-slate-900 italic uppercase">{new Date(selectedVisitor.visitDate).toLocaleDateString()}</p>
+                         </div>
+                      </div>
+                      <div className="p-6 bg-indigo-50/50 rounded-3xl border border-indigo-100/50">
+                         <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-2 italic">Visit Purpose</p>
+                         <p className="text-sm font-bold text-indigo-900 italic leading-relaxed">"{selectedVisitor.purpose || selectedVisitor.notes || "No additional context provided."}"</p>
+                      </div>
+                   </div>
+
+                   <div className="flex gap-4">
+                      {selectedVisitor.status === 'Pending' && (
+                        <button 
+                          onClick={() => { handleEdit(selectedVisitor); setSelectedVisitor(null); }}
+                          className="flex-1 py-5 bg-slate-900 text-white rounded-[1.8rem] text-[10px] font-black uppercase tracking-[0.2em] italic hover:bg-indigo-600 transition-all shadow-xl"
+                        >
+                          EDIT REQUEST
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => setSelectedVisitor(null)}
+                        className="flex-1 py-5 bg-slate-50 text-slate-400 border border-slate-200 rounded-[1.8rem] text-[10px] font-black uppercase tracking-[0.2em] italic"
+                      >
+                        CLOSE
+                      </button>
+                   </div>
+                </div>
+             </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
     </motion.div>
