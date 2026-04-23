@@ -1,9 +1,24 @@
 import jwt from 'jsonwebtoken';
 import * as jose from 'jose';
 import { cookies } from 'next/headers';
+import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const TOKEN_NAME = 'auth_token';
+
+/**
+ * Hash a password
+ */
+export async function hashPassword(password) {
+  return await bcrypt.hash(password, 10);
+}
+
+/**
+ * Verify a password against a hash
+ */
+export async function verifyPassword(password, hash) {
+  return await bcrypt.compare(password, hash);
+}
 
 /**
  * Generate a JWT token for a user/admin
@@ -13,6 +28,9 @@ export function signToken(payload) {
     expiresIn: '7d',
   });
 }
+
+// Alias for compatibility
+export const signSession = signToken;
 
 /**
  * Verify a JWT token
