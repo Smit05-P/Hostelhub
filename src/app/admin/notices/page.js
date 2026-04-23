@@ -229,6 +229,8 @@ export default function AdminNoticesPage() {
                </div>
             </div>
          </div>
+      </div>
+
       {/* Notice Modal (Drawer on Mobile) */}
       <AnimatePresence>
         {showForm && (
@@ -352,7 +354,7 @@ export default function AdminNoticesPage() {
          <AnimatePresence mode="popLayout">
            {filteredNotices.length === 0 ? (
              <motion.div 
-               colSpan={3}
+               key="empty-state"
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                className="md:col-span-2 xl:col-span-3 bg-white rounded-[4rem] border border-slate-200 border-dashed py-32 text-center px-10 group"
