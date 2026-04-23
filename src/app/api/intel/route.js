@@ -94,50 +94,48 @@ ${JSON.stringify(fees.map(f => ({ student: f.studentId?.name, amount: f.amount, 
       }
     }
 
-    // --- PROVIDER 2: OPENROUTER FALLBACK (Multi-Model Rotation) ---
+    // --- PROVIDER 2: OPENROUTER NATIVE FALLBACK (Simplified & Robust) ---
     if (!finalContent) {
-      const openrouter = new OpenRouter({
-        apiKey: process.env.OPENROUTER_API_KEY
-      });
+      try {
+        const openrouter = new OpenRouter({
+          apiKey: process.env.OPENROUTER_API_KEY
+        });
 
-      const FREE_MODELS = [
-        "google/gemini-2.0-flash-exp:free",
-        "deepseek/deepseek-r1:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "qwen/qwen3-coder:free",
-        "google/gemma-3-27b-it:free",
-      ];
+        // The sequence of models to try. OpenRouter will walk this list top-to-bottom.
+        const FREE_MODELS = [
+          "google/gemini-2.0-flash-exp:free",
+          "deepseek/deepseek-r1:free",
+          "meta-llama/llama-3.3-70b-instruct:free",
+          "qwen/qwen3-coder:free",
+          "google/gemma-3-27b-it:free",
+        ];
 
-      for (const model of FREE_MODELS) {
-        try {
-          console.log(`[Intel] Attempting OpenRouter auto-switch: ${model}`);
-          const stream = await openrouter.chat.send({
-            chatRequest: {
-              model,
-              messages: formattedMessages,
-              stream: true
+        console.log(`[Intel] Attempting OpenRouter with Native Fallback (${FREE_MODELS[0]})...`);
+        
+        const stream = await openrouter.chat.send({
+          chatRequest: {
+            model: FREE_MODELS[0],
+            messages: formattedMessages,
+            stream: true,
+            // Native OpenRouter Fallback configuration
+            extra_body: {
+              models: FREE_MODELS,
+              route: "fallback"
             }
-          });
+          }
+        });
 
-          for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content;
-            if (content) finalContent += content;
-          }
-
-          if (finalContent) {
-            console.log(`[Intel] Success with OpenRouter model: ${model}`);
-            break;
-          }
-        } catch (err) {
-          const msg = err?.message || String(err);
-          console.warn(`[Intel] OpenRouter ${model} failed: ${msg}`);
-          lastError = err;
-          
-          if (msg.includes("429") || msg.includes("limit") || msg.includes("Provider") || msg.includes("overloaded") || msg.includes("temporarily")) {
-            continue;
-          }
-          break; // Stop if it's a fatal key error
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content;
+          if (content) finalContent += content;
         }
+
+        if (finalContent) {
+          console.log(`[Intel] Success via OpenRouter Fallback`);
+        }
+      } catch (err) {
+        console.warn(`[Intel] OpenRouter native fallback failed: ${err?.message}`);
+        lastError = err;
       }
     }
 
