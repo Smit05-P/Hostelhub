@@ -7,6 +7,12 @@ function ensureInitialized() {
     _initialized = true;
     return;
   }
+
+  // Guard: If we're in a build environment without credentials, skip init silently
+  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL) {
+    return;
+  }
+
   try {
     admin.initializeApp({
       credential: admin.credential.cert({
