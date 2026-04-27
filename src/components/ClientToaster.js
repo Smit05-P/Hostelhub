@@ -14,12 +14,6 @@ export default function ClientToaster() {
 
   if (!mounted) return null;
 
-  // Do not show notifications on these pages
-  const hiddenPaths = ["/login", "/register", "/admin/login", "/student/select-hostel", "/student/pending"];
-  if (pathname && hiddenPaths.some((p) => pathname.startsWith(p) || pathname === p)) {
-    return null;
-  }
-
   return (
     <Toaster 
       position="top-right"
@@ -52,18 +46,19 @@ export default function ClientToaster() {
             primary: '#e11d48',
             secondary: '#fff',
           },
+        },
+        success: {
+          style: {
+            background: 'rgba(255, 255, 255, 0.98)',
+            border: '1px solid rgba(167, 243, 208, 1)',
+            color: '#059669',
+          },
+          iconTheme: {
+            primary: '#059669',
+            secondary: '#fff',
+          },
         }
       }}
-    >
-      {(t) => {
-        // Prevent success toasts from rendering at all
-        if (t.type === 'success') {
-          return null;
-        }
-        return (
-          <ToastBar toast={t} />
-        );
-      }}
-    </Toaster>
+    />
   );
 }

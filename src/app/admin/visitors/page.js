@@ -725,14 +725,14 @@ VERIFIED BY HOSTELHUB SECURITY CORE
               <button 
                 onClick={() => { onStatusUpdate(visitor._id, 'Completed'); onClose(); }}
                 disabled={updatingIds.has(visitor._id)}
-                className="flex-1 py-4 sm:py-5 bg-indigo-600 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] italic hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50"
+                className="flex-1 py-4 sm:py-5 bg-indigo-600 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] italic hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50 flex items-center justify-center text-center"
               >
                 {updatingIds.has(visitor._id) ? "PROCESSING..." : "MARK COMPLETED"}
               </button>
             )}
             <button 
               onClick={handleShare}
-              className="flex-1 py-4 sm:py-5 bg-slate-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] italic hover:bg-slate-800 transition-all shadow-xl"
+              className="flex-1 py-4 sm:py-5 bg-slate-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] italic hover:bg-slate-800 transition-all shadow-xl flex items-center justify-center text-center"
             >
               SHARE PASS
             </button>

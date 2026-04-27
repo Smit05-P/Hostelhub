@@ -297,13 +297,13 @@ export default function AdminNoticesPage() {
                    <div className="flex flex-col sm:flex-row gap-6 pt-6 border-t border-slate-200">
                      <button
                        type="submit" disabled={isSubmitting}
-                       className="flex-[2] py-6 bg-slate-900 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] italic hover:bg-indigo-600 transition-all shadow-2xl disabled:opacity-50"
+                       className="flex-[2] py-6 bg-slate-900 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] italic hover:bg-indigo-600 transition-all shadow-2xl disabled:opacity-50 flex items-center justify-center text-center"
                      >
                        {isSubmitting ? "PROCESSING..." : (isEditing ? "UPDATE NOTICE" : "CREATE NOTICE")}
                      </button>
                      <button
                        type="button" onClick={() => { setShowForm(false); resetForm(); }}
-                       className="flex-1 py-6 bg-white text-slate-400 rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] italic border-2 border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all"
+                       className="flex-1 py-6 bg-white text-slate-400 rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] italic border-2 border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all flex items-center justify-center text-center"
                      >
                        DISCARD
                      </button>

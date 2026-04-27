@@ -54,6 +54,8 @@ PaymentSchema.pre('validate', async function() {
     // Map common variations to enum values
     if (this.method === 'card' || this.method === 'netbanking') this.method = 'online';
     if (this.method === 'transfer') this.method = 'online';
+    if (this.method === 'card_credit' || this.method === 'credit' || this.method === 'debit') this.method = 'online';
+    if (this.method === 'upi_debit') this.method = 'upi';
   }
 });
 

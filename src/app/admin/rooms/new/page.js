@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Save, Building2, Bed, DollarSign, LayoutList } from "lucide-react";
 import { useToast } from "@/contexts/ToastContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AddRoomPage() {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ export default function AddRoomPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { addToast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +50,11 @@ export default function AddRoomPage() {
       });
       
       addToast("New room asset registered successfully!", "success");
+      // Invalidate all rooms queries so the list re-fetches immediately
+      await queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       router.push("/admin/rooms");
+      router.refresh();
     } catch (error) {
       console.error("Error adding room:", error);
       addToast(error.response?.data?.error || "Failed to register room asset.", "error");
@@ -210,17 +216,17 @@ export default function AddRoomPage() {
                </div>
             </div>
 
-            <div className="pt-10 border-t border-slate-50 flex items-center justify-end gap-6">
+            <div className="pt-10 border-t border-slate-50 flex flex-col-reverse sm:flex-row items-center justify-center sm:justify-end gap-4 sm:gap-6">
                <Link 
                   href="/admin/rooms" 
-                  className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-500 transition-colors"
+                  className="w-full sm:w-auto text-center px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-500 transition-colors"
                >
                   Cancel
                </Link>
                <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center gap-4 rounded-[1.75rem] bg-slate-900 px-12 py-5 text-[11px] font-black text-white uppercase tracking-[0.3em] shadow-2xl shadow-slate-200 hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50 italic"
+                  className="w-full sm:w-auto flex items-center justify-center gap-4 rounded-[1.75rem] bg-slate-900 px-12 py-5 text-[11px] font-black text-white uppercase tracking-[0.3em] shadow-2xl shadow-slate-200 hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50 italic"
                >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                   Finalize Provisioning

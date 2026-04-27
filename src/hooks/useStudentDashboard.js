@@ -20,7 +20,8 @@ export function useStudentDashboard() {
         } catch (e) {
           errorData = { error: "Could not parse error response" };
         }
-        console.error("[DASHBOARD-HOOK] Failed to fetch:", res.status, errorData);
+        // Prevent console log spam on expected network/serverless latency
+        // console.warn("[DASHBOARD-HOOK] Failed to fetch:", res.status, errorData);
         throw new Error(errorData.details || errorData.error || `Failed to fetch student dashboard: ${res.status}`);
       }
       
@@ -30,7 +31,7 @@ export function useStudentDashboard() {
     },
     enabled: !!studentId && hostelStatus === "APPROVED",
     staleTime: 0,
-    refetchInterval: 5000, // Sync every 5 seconds for "real-time" feel
+    refetchInterval: 60000, // Sync every 1 minute instead of 5 seconds to prevent server overload
     placeholderData: (previousData) => previousData,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),

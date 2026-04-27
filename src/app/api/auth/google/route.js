@@ -35,6 +35,14 @@ export async function POST(req) {
         userId = user._id.toString();
         hostelId = user.hostelId?.toString();
       } else {
+        // Cross-role check: Make sure they aren't already a student
+        const studentCheck = await Student.findOne({ email });
+        if (studentCheck) {
+          return NextResponse.json({ 
+            error: "You are registered as a Student. Please switch the role toggle to Student to log in." 
+          }, { status: 403 });
+        }
+
         // Create new admin (orphaned until hostel is created/linked)
         user = await Admin.create({
           name,
@@ -51,6 +59,14 @@ export async function POST(req) {
         userId = user._id.toString();
         hostelId = user.hostelId?.toString();
       } else {
+        // Cross-role check: Make sure they aren't already an admin
+        const adminCheck = await Admin.findOne({ email });
+        if (adminCheck) {
+          return NextResponse.json({ 
+            error: "You are registered as an Admin. Please switch the role toggle to Admin to log in." 
+          }, { status: 403 });
+        }
+
         // Create new student
         user = await Student.create({
           name,

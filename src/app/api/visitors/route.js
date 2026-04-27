@@ -29,27 +29,19 @@ export async function GET(request) {
 
     let query = { hostelId: { $in: hostelIdFilters } };
     
-    // If studentId is provided, filter by it but also include general hostel guests
+    // If studentId is provided, filter by it strictly
     if (studentId) {
       try {
         const sId = new mongoose.Types.ObjectId(studentId);
         query = {
           hostelId: { $in: hostelIdFilters },
-          $or: [
-            { studentId: sId },
-            { studentId: { $exists: false } },
-            { studentId: null }
-          ]
+          studentId: sId
         };
       } catch (e) {
         // Fallback for non-ObjectId strings if any
         query = {
           hostelId: { $in: hostelIdFilters },
-          $or: [
-            { studentId: studentId },
-            { studentId: { $exists: false } },
-            { studentId: null }
-          ]
+          studentId: studentId
         };
       }
     }

@@ -72,9 +72,17 @@ export async function GET() {
       throw new Error(`Complaint query failed: ${e.message}`);
     }
 
-    if (hostelId) {
+    if (hostelId && profile) {
       try {
-        notices = await Notice.find({ hostelId })
+        const studentJoinedAt = profile.joiningDate || profile.createdAt || new Date(0);
+        
+        notices = await Notice.find({ 
+          hostelId,
+          $or: [
+            { date: { $gte: studentJoinedAt } },
+            { createdAt: { $gte: studentJoinedAt } }
+          ]
+        })
           .sort({ date: -1, createdAt: -1 })
           .limit(3)
           .lean();

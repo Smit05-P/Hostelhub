@@ -17,7 +17,6 @@ import SaaSInput from "@/components/auth/SaaSInput";
 import SaaSButton from "@/components/auth/SaaSButton";
 import SaaSRoleToggle from "@/components/auth/SaaSRoleToggle";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal";
-import RoleSelectionModal from "@/components/auth/RoleSelectionModal";
 import ForceLightMode from "@/components/ForceLightMode";
 
 const loginSchema = z.object({
@@ -31,9 +30,6 @@ export default function LoginPage() {
   const [role, setRole] = useState("student");
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
-  const [googleUser, setGoogleUser] = useState(null);
-
   const router = useRouter();
   const { user, role: currentRole, hostelStatus, loading: authLoading, refreshUser } = useAuth();
 
@@ -134,8 +130,21 @@ export default function LoginPage() {
         const path = getRedirectPath(freshUser);
         router.replace(path);
       } else if (response.data.needsRole) {
-        setGoogleUser({ uid, email, displayName: name, photoURL });
-        setIsRoleModalOpen(true);
+        // Auto-submit the role from the UI toggle instead of showing a modal
+        try {
+          await axios.post("/api/auth/google", {
+            uid, email, name, photoURL,
+            role: role,
+          });
+
+          const freshUser = await refreshUser();
+          toast.success(`Account created as ${role}!`);
+          const path = getRedirectPath(freshUser);
+          router.replace(path);
+        } catch (err) {
+          console.error("Google Onboarding Error:", err);
+          toast.error("Failed to complete profile.");
+        }
       }
     } catch (error) {
       console.error("Google Auth Error:", error);
@@ -175,31 +184,6 @@ export default function LoginPage() {
       window.googleTokenClient.requestAccessToken();
     } else {
       toast.error("Google Sign-In is not initialized. Please configure your Client ID.");
-    }
-  };
-
-  const handleRoleSelect = async (selectedRole) => {
-    if (!googleUser) return;
-    setIsGoogleLoading(true);
-    try {
-      await axios.post("/api/auth/google", {
-        uid: googleUser.uid,
-        email: googleUser.email,
-        name: googleUser.displayName,
-        photoURL: googleUser.photoURL,
-        role: selectedRole,
-      });
-
-      const freshUser = await refreshUser();
-      toast.success(`Account created as ${selectedRole}!`);
-      setIsRoleModalOpen(false);
-      const path = getRedirectPath(freshUser);
-      router.replace(path);
-    } catch (err) {
-      console.error("Google Onboarding Error:", err);
-      toast.error("Failed to complete profile.");
-    } finally {
-      setIsGoogleLoading(false);
     }
   };
 
@@ -253,7 +237,8 @@ export default function LoginPage() {
 
           <SaaSButton 
             type="submit" 
-            isLoading={isLoading} 
+            isLoading={isLoading}
+            loadingText="Signing In..."
             className="mt-2"
           >
             Sign In <ArrowRight size={18} />
@@ -273,6 +258,7 @@ export default function LoginPage() {
           variant="white" 
           onClick={handleGoogleSignIn}
           isLoading={isGoogleLoading}
+          loadingText="Authenticating..."
           icon={() => (
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -324,12 +310,6 @@ export default function LoginPage() {
       <ForgotPasswordModal 
         isOpen={isForgotPasswordOpen} 
         onClose={() => setIsForgotPasswordOpen(false)} 
-      />
-
-      <RoleSelectionModal 
-        isOpen={isRoleModalOpen}
-        onSelect={handleRoleSelect}
-        isLoading={isGoogleLoading}
       />
     </SaaSAuthLayout>
   );

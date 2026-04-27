@@ -196,10 +196,10 @@ export default function JoinRequestsPage() {
            </p>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 w-full lg:w-auto">
           <button 
             onClick={fetchRequests}
-            className="h-14 px-8 bg-white border border-slate-200 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 hover:bg-slate-50 transition-all shadow-xl shadow-indigo-500/5 active:scale-95 flex items-center gap-4 group"
+            className="h-14 w-full lg:w-auto px-8 bg-white border border-slate-200 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 hover:bg-slate-50 transition-all shadow-xl shadow-indigo-500/5 active:scale-95 flex items-center justify-center gap-4 group"
           >
             <RefreshCw size={18} className={`${loading ? "animate-spin text-indigo-500" : "group-hover:rotate-180 transition-transform duration-700"}`} />
             Sync Core Status
@@ -244,12 +244,12 @@ export default function JoinRequestsPage() {
       >
         {/* Toolbar */}
         <div className="p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-slate-50/20 border-b border-slate-100">
-          <div className="flex items-center bg-slate-100/50 p-2 rounded-[1.25rem] border border-slate-200/50 w-fit">
+          <div className="flex items-center bg-slate-100/50 p-2 rounded-[1.25rem] border border-slate-200/50 w-full lg:w-fit overflow-x-auto hide-scrollbar">
             {["Pending", "Approved", "Rejected"].map(s => (
               <button 
                 key={s}
                 onClick={() => setFilter(s)}
-                className={`px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] italic rounded-xl transition-all ${
+                className={`px-6 sm:px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] italic rounded-xl transition-all whitespace-nowrap flex-1 lg:flex-none text-center ${
                   filter === s 
                   ? 'bg-slate-900 text-white shadow-xl translate-y-[-2px]' 
                   : 'text-slate-400 hover:text-slate-700'
@@ -517,16 +517,16 @@ export default function JoinRequestsPage() {
                              onChange={(e) => setAdminNote(e.target.value)}
                              className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black italic uppercase outline-none focus:border-rose-300"
                            />
-                           <div className="flex gap-2">
+                           <div className="flex flex-col sm:flex-row gap-2">
                               <button 
                                 onClick={() => handleAction(req._id, "reject")}
-                                className="flex-1 py-3 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase italic"
+                                className="flex-1 py-4 sm:py-3 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase italic flex items-center justify-center text-center shadow-lg active:scale-95 transition-transform"
                               >
                                  CONFIRM
                               </button>
                               <button 
                                 onClick={() => { setRejectingId(null); setAdminNote(""); }}
-                                className="flex-1 py-3 bg-slate-100 text-slate-400 rounded-xl text-[10px] font-black uppercase italic"
+                                className="flex-1 py-4 sm:py-3 bg-slate-100 text-slate-400 rounded-xl text-[10px] font-black uppercase italic flex items-center justify-center text-center active:scale-95 transition-transform"
                               >
                                  CANCEL
                               </button>

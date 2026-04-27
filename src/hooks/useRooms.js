@@ -16,7 +16,7 @@ export function useRooms(options = {}) {
       return res.json();
     },
     enabled: !!activeHostelId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
     placeholderData: (previousData) => previousData,
   });
 

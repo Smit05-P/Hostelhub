@@ -128,7 +128,7 @@ export default function StudentDashboardPage() {
     );
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-400 gap-6 p-4">
          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-4 max-w-sm">

@@ -48,9 +48,10 @@ export default function ProtectedRoute({ children, allowedRoles }) {
       const target = studentPaths[status] || "/student/select-hostel";
 
       // Validation logic: APPROVED users can access any valid dashboard sub-route within the student module
+      // We allow them to stay on /student/pending so the "Approval Popup" remains visible until they click relogin
       const isApprovedInModule = status === "APPROVED" && 
                                   pathname.startsWith("/student") && 
-                                  !["/student/select-hostel", "/student/pending"].includes(pathname);
+                                  pathname !== "/student/select-hostel";
                                   
       const isOnCorrectStatusPage = pathname === target;
 

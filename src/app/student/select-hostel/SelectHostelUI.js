@@ -90,19 +90,27 @@ export default function SelectHostelUI() {
     return () => clearTimeout(timeout);
   }, [searchQuery, activeTab]);
 
-  // Check for pending invite code
+  // Check for pending invite code (from URL or session)
   useEffect(() => {
     const pendingCode = sessionStorage.getItem("pendingJoinCode");
     if (pendingCode && (user?._id || user?.id || user?.uid)) {
       sessionStorage.removeItem("pendingJoinCode");
-      setJoinCode(pendingCode);
-      // We wrap it in a small timeout to ensure state is updated
-      setTimeout(() => {
-        const fakeEvent = { preventDefault: () => {} };
-        // For auto-fill from URL, we move directly to duration step
-        setSelectedHostel({ method: "code", code: pendingCode });
-        setStep("duration");
-      }, 500);
+      const code = pendingCode.trim().toUpperCase();
+      setJoinCode(code);
+      // Validate the code before advancing — never auto-advance without server confirmation
+      setTimeout(async () => {
+        try {
+          const res = await axios.get(`/api/hostels/validate-code?code=${code}`);
+          if (res.data.success && res.data.hostel) {
+            setSelectedHostel({ method: "code", code, name: res.data.hostel.name, id: res.data.hostel.id });
+            setStep("duration");
+          } else {
+            addToast("The invite code from your link is invalid.", "error");
+          }
+        } catch {
+          addToast("Could not validate the invite code. Please enter it manually.", "error");
+        }
+      }, 400);
     }
   }, [user]);
 
@@ -165,8 +173,22 @@ export default function SelectHostelUI() {
   const handleJoinByCode = async (e) => {
     if (e) e.preventDefault();
     if (!joinCode) return;
-    setSelectedHostel({ method: "code", code: joinCode.trim().toUpperCase() });
-    setStep("duration");
+    
+    setJoiningCode(true);
+    try {
+      const code = joinCode.trim().toUpperCase();
+      const res = await axios.get(`/api/hostels/validate-code?code=${code}`);
+      
+      if (res.data.success && res.data.hostel) {
+        setSelectedHostel({ method: "code", code, name: res.data.hostel.name, id: res.data.hostel.id });
+        setStep("duration");
+      }
+    } catch (error) {
+      console.error("Code validation error:", error);
+      addToast(error.response?.data?.error || "Invalid join code.", "error");
+    } finally {
+      setJoiningCode(false);
+    }
   };
 
   const handleSelectHostel = (hostelId, hostelName) => {
@@ -283,10 +305,14 @@ export default function SelectHostelUI() {
 
                     <button 
                       type="submit"
-                      disabled={!joinCode}
+                      disabled={!joinCode || joiningCode}
                       className="w-full h-20 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-[0.3em] rounded-[2rem] flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/30 active:scale-[0.98] disabled:opacity-50 italic group"
                     >
-                      Proceed to Duration <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" />
+                      {joiningCode ? (
+                        <><Loader2 size={20} className="animate-spin" /> Validating Code...</>
+                      ) : (
+                        <>Proceed to Duration <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-500" /></>
+                      )}
                     </button>
                   </form>
                 ) : (

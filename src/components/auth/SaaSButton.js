@@ -7,6 +7,7 @@ export default function SaaSButton({
   onClick,
   type = "button",
   isLoading = false,
+  loadingText,
   variant = "primary", // primary, white
   icon: Icon,
   className = "",
@@ -29,7 +30,10 @@ export default function SaaSButton({
       {...props}
     >
       {isLoading ? (
-        <Loader2 size={20} className="animate-spin" />
+        <>
+          <Loader2 size={20} className="animate-spin" />
+          {loadingText && <span>{loadingText}</span>}
+        </>
       ) : (
         <>
           {Icon && <Icon size={20} />}

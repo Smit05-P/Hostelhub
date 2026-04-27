@@ -10,7 +10,7 @@ export default function SaaSRoleToggle({ role, setRole, className = "" }) {
       
       {/* Sliding Indicator (Indigo Pill) */}
       <div 
-        className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#4F46E5] rounded-[10px] shadow-md shadow-indigo-100 transition-all duration-300 transform ${
+        className={`absolute left-1.5 top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#4F46E5] rounded-[10px] shadow-md shadow-indigo-100 transition-all duration-300 transform ${
           isAdmin ? "translate-x-full" : "translate-x-0"
         }`}
       />

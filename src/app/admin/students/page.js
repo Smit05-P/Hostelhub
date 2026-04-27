@@ -779,14 +779,14 @@ const EditModalContent = ({ formData, setFormData, selectedStudent, rooms, onClo
         {step > 1 ? (
           <button 
             onClick={() => setStep(s => s - 1)}
-            className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest italic"
+            className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-widest italic flex items-center justify-center text-center"
           >
             BACK
           </button>
         ) : (
           <button 
             onClick={onClose}
-            className="flex-1 py-4 bg-slate-100 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest italic"
+            className="flex-1 py-4 bg-slate-100 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest italic flex items-center justify-center text-center"
           >
             ABORT
           </button>
@@ -795,7 +795,7 @@ const EditModalContent = ({ formData, setFormData, selectedStudent, rooms, onClo
         {step < totalSteps ? (
           <button 
             onClick={() => setStep(s => s + 1)}
-            className="flex-1 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest italic shadow-xl"
+            className="flex-1 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest italic shadow-xl flex items-center justify-center text-center"
           >
             CONTINUE
           </button>
@@ -803,7 +803,7 @@ const EditModalContent = ({ formData, setFormData, selectedStudent, rooms, onClo
           <button 
             onClick={onSave}
             disabled={isPending}
-            className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest italic shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-3"
+            className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest italic shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-3 text-center"
           >
             {isPending ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
             EXECUTE SYNC

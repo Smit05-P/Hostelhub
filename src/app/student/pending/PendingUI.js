@@ -30,18 +30,20 @@ export default function PendingUI() {
         const normalizedStatus = (req?.status || "").toUpperCase();
 
         // Deterministic redirect after status transition.
-        if (normalizedStatus === "APPROVED" || normalizedStatus === "REJECTED") {
-          console.log(`[PENDING-UI] Request status changed to ${normalizedStatus}. Triggering refresh + redirect...`);
-          const refreshedUser = await refreshUser();
-          const refreshedStatus = (refreshedUser?.hostelStatus || normalizedStatus).toUpperCase().replace(/[-\s]/g, "_");
+        if (normalizedStatus === "APPROVED") {
+          console.log(`[PENDING-UI] Request APPROVED from DB. Showing approval popup...`);
+          showPopupRef.current = true;
+          setShowApprovalPopup(true);
+          // Refresh session in background (non-blocking)
+          refreshUser().catch(() => {});
+          return;
+        }
 
-          if (refreshedStatus === "APPROVED") {
-            showPopupRef.current = true;
-            setShowApprovalPopup(true);
-          } else {
-            router.replace("/student/select-hostel");
-          }
-          return; 
+        if (normalizedStatus === "REJECTED") {
+          console.log(`[PENDING-UI] Request REJECTED. Redirecting to select-hostel...`);
+          await refreshUser().catch(() => {});
+          router.replace("/student/select-hostel");
+          return;
         }
 
         setRequest(req);

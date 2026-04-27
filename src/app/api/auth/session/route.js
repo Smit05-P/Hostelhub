@@ -59,7 +59,7 @@ export async function GET() {
             { userId: new mongoose.Types.ObjectId(session.userId) },
             { userEmail: student.email }
           ]
-        }).sort({ createdAt: -1 });
+        }).sort({ updatedAt: -1, createdAt: -1 });
 
         if (latestRequest && student.hostelStatus !== 'Approved') {
           const requestStatus = latestRequest.status;

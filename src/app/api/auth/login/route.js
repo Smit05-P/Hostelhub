@@ -26,11 +26,27 @@ export async function POST(request) {
       user = await Admin.findOne({ email }).select('+password').populate('hostelId');
       if (user) {
         isMatch = await user.matchPassword(password);
+      } else {
+        // Cross-role check
+        const studentCheck = await Student.findOne({ email });
+        if (studentCheck) {
+          return NextResponse.json({ 
+            error: 'You are registered as a Student. Please switch the role toggle to Student to log in.' 
+          }, { status: 403 });
+        }
       }
     } else {
       user = await Student.findOne({ email }).select('+passwordHash').populate('hostelId');
       if (user) {
         isMatch = await user.matchPassword(password);
+      } else {
+        // Cross-role check
+        const adminCheck = await Admin.findOne({ email });
+        if (adminCheck) {
+          return NextResponse.json({ 
+            error: 'You are registered as an Admin. Please switch the role toggle to Admin to log in.' 
+          }, { status: 403 });
+        }
       }
     }
 

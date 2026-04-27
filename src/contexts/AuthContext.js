@@ -67,8 +67,8 @@ export function AuthProvider({ children }) {
         
         if (data.user.role === 'student') {
           const rawStatus = data.user.hostelStatus || (data.user.hostelId ? 'Approved' : 'No Hostel');
-          // Normalize to uppercase so all comparisons like hostelStatus === "APPROVED" work reliably
-          const status = rawStatus.toUpperCase().replace(' ', '_');
+          // Normalize to uppercase and replace spaces/hyphens with underscores for reliable enum matching
+          const status = rawStatus.toUpperCase().replace(/[\s-]/g, '_');
           console.log("[AUTH] Student status resolved to:", status);
           setHostelStatus(status);
           setHasPendingRequest(status === 'PENDING');
