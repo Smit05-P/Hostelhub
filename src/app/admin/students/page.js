@@ -9,6 +9,7 @@ import {
   UserPlus, CheckCircle2, Building, X, CreditCard, Calendar, Hash, Activity, Users,
   Target, Monitor, ShieldAlert, Maximize2, Database, DollarSign
 } from "lucide-react";
+import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -55,20 +56,7 @@ function calcLifecycle(arrivalDate, duration) {
   };
 }
 
-const Avatar = memo(({ student, size = 12 }) => {
-  const [imgError, setImgError] = useState(false);
-  const initial = student?.name?.charAt(0)?.toUpperCase() || "?";
-  const avatarUrl = student?.profileImage || student?.photoURL;
-  return (
-    <div className={`w-${size} h-${size} rounded-[1.2rem] overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 shadow-inner group-hover:border-indigo-200 transition-all duration-500`}>
-      {avatarUrl && !imgError ? (
-        <img src={avatarUrl} alt={student.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
-      ) : (
-        <span className="text-lg font-black text-slate-400 italic uppercase">{initial}</span>
-      )}
-    </div>
-  );
-});
+
 
 const StatusBadge = memo(({ status, type = "lifecycle" }) => {
   const configs = {
@@ -368,7 +356,7 @@ export default function AdminStudentsPage() {
                         >
                            <td className="px-10 py-8" onClick={() => handleEdit(s)}>
                               <div className="flex items-center gap-5">
-                                 <Avatar student={s} size={14} />
+                                 <Avatar src={s.profileImage || s.photoURL} name={s.name} size={14} />
                                  <div className="flex flex-col">
                                     <p className="text-base font-black text-slate-900 uppercase tracking-tight italic group-hover:text-indigo-600 transition-colors">{s.name}</p>
                                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 leading-none">{s.email}</p>
@@ -447,7 +435,7 @@ export default function AdminStudentsPage() {
                      >
                         <div className="flex items-center justify-between mb-6">
                            <div className="flex items-center gap-4">
-                              <Avatar student={s} size={14} />
+                              <Avatar src={s.profileImage || s.photoURL} name={s.name} size={14} />
                               <div>
                                  <p className="text-lg font-black text-slate-900 uppercase italic leading-none">{s.name}</p>
                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5 italic">{s.enrollmentId || "NO-ID"}</p>
@@ -537,6 +525,20 @@ const EditModalContent = ({ formData, setFormData, selectedStudent, rooms, onClo
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {/* Column 1 */}
           <div className="space-y-10">
+            <div className="flex items-center gap-6 mb-10 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 shadow-inner">
+               <Avatar src={selectedStudent?.profileImage || selectedStudent?.photoURL} name={selectedStudent?.name} size={20} className="shadow-2xl" />
+               <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xl font-black text-slate-900 italic uppercase leading-none tracking-tight">{selectedStudent?.name}</h4>
+                    <span className="px-3 py-1 bg-white rounded-full text-[8px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-50 shadow-sm italic">Resident Profile</span>
+                  </div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2.5 italic opacity-70">{selectedStudent?.email}</p>
+                  <div className="flex items-center gap-2 mt-4">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Live Stream Active</span>
+                  </div>
+               </div>
+            </div>
             <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
               <User size={16} className="text-indigo-500" />
               <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.4em] italic">IDENTITY VECTOR</h3>

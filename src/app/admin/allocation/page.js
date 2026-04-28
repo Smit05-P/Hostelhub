@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/contexts/ToastContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import Avatar from "@/components/ui/Avatar";
 import RoomAllocationModal from "@/components/RoomAllocationModal";
 
 const CONTAINER_VARIANTS = {
@@ -73,9 +74,7 @@ const RoomCard = ({ room, onAllocate, onDeallocate }) => {
            <div className="flex flex-wrap gap-2.5">
               {room.occupants?.map((occ, idx) => (
                 <div key={idx} className="flex items-center gap-3 px-4 py-2 rounded-xl bg-slate-50 border border-slate-100 group/occ hover:bg-white hover:border-indigo-200 transition-all shadow-sm">
-                   <div className="w-6 h-6 rounded-lg bg-slate-900 flex items-center justify-center text-[11px] font-black text-white italic">
-                      {occ.name?.[0] || 'R'}
-                   </div>
+                   <Avatar src={occ.profileImage} name={occ.name} size={6} className="rounded-lg shadow-sm" />
                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-tighter italic">{occ.name}</span>
                    <button 
                      onClick={() => onDeallocate(room._id, (occ._id || occ.id))}

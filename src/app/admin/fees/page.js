@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/contexts/ToastContext";
 import { useAuth } from "@/contexts/AuthContext";
 import PaymentStatusBadge from "@/components/PaymentStatusBadge";
+import Avatar from "@/components/ui/Avatar";
 
 const CONTAINER_VARIANTS = {
   hidden: { opacity: 0 },
@@ -268,9 +269,7 @@ export default function AdminFeesPage() {
                         >
                            <td className="px-10 py-8">
                               <div className="flex items-center gap-5">
-                                 <div className="w-12 h-12 rounded-[1.2rem] bg-slate-900 flex items-center justify-center text-white text-sm font-black shadow-xl shadow-indigo-500/10 italic">
-                                    {p.studentName?.[0]}
-                                 </div>
+                                 <Avatar src={p.profileImage} name={p.studentName} size={12} className="shadow-xl shadow-indigo-500/10" />
                                  <div className="flex flex-col">
                                     <p className="text-base font-black text-slate-900 uppercase tracking-tight italic group-hover:text-indigo-600 transition-colors">{p.studentName}</p>
                                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mt-1.5">{p.email}</p>
@@ -330,9 +329,7 @@ export default function AdminFeesPage() {
                      >
                         <div className="flex items-center justify-between mb-6">
                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center text-white text-xs font-black italic">
-                                 {p.studentName?.[0]}
-                              </div>
+                              <Avatar src={p.profileImage} name={p.studentName} size={12} />
                               <div>
                                  <p className="text-lg font-black text-slate-900 uppercase italic leading-none">{p.studentName}</p>
                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5 italic">{new Date(p.date || Date.now()).toLocaleDateString()}</p>

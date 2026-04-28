@@ -46,7 +46,7 @@ export async function GET(request) {
       }
     }
 
-    const visitors = await Visitor.find(query).sort({ createdAt: -1 });
+    const visitors = await Visitor.find(query).populate('studentId', 'profileImage').sort({ createdAt: -1 });
     return NextResponse.json(visitors);
   } catch (error) {
     console.error("GET /api/visitors error:", error);

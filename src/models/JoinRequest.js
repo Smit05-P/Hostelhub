@@ -10,6 +10,7 @@ const JoinRequestSchema = new mongoose.Schema({
     required: true,
   },
   userEmail: String,
+  userImage: String,
   hostelId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Hostel',

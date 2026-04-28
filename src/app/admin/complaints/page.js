@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/contexts/ToastContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import Avatar from "@/components/ui/Avatar";
 
 const CONTAINER_VARIANTS = {
   hidden: { opacity: 0 },
@@ -88,11 +89,8 @@ const ComplaintCard = ({ complaint, onUpdateStatus, onDelete, onViewDetails }) =
             <div className="space-y-6 mt-auto pt-6 border-t border-slate-50">
                <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4 min-w-0">
-                     <div className="w-12 h-12 rounded-[1rem] bg-slate-900 flex-shrink-0 flex items-center justify-center text-[14px] font-black text-white italic shadow-lg shadow-indigo-500/10 overflow-hidden relative">
-                        {complaint.studentName?.[0] || 'U'}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-transparent" />
-                     </div>
-                     <div className="flex flex-col min-w-0">
+                   <Avatar src={complaint.studentId?.profileImage} name={complaint.studentName} size={12} className="shadow-lg shadow-indigo-500/10" />
+                   <div className="flex flex-col min-w-0">
                         <span className="text-[12px] font-black text-slate-900 uppercase tracking-tight italic truncate">{complaint.studentName || 'Resident Unknown'}</span>
                         <div className="flex items-center gap-2">
                            <span className={`text-[10px] font-black uppercase italic ${config.color}`}>{config.label}</span>

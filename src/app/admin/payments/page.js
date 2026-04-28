@@ -5,6 +5,7 @@ import axios from "axios";
 import Link from "next/link";
 import { Plus, Trash2, Search, Filter, Loader2, CreditCard, Receipt, Calendar, User } from "lucide-react";
 import { useToast } from "@/contexts/ToastContext";
+import Avatar from "@/components/ui/Avatar";
 
 import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
 
@@ -156,9 +157,7 @@ export default function PaymentsPage() {
                   <tr key={payment._id} className="group hover:bg-slate-50/50 transition-all duration-300">
                     <td className="py-8 pl-10">
                       <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-50 flex items-center justify-center font-black text-slate-300 text-lg group-hover:border-blue-100 group-hover:text-blue-500 transition-all duration-500">
-                          {(payment.studentId?.name?.[0] || payment.studentName?.[0] || "?")}
-                        </div>
+                        <Avatar src={payment.studentId?.profileImage} name={payment.studentId?.name || payment.studentName} size={12} className="group-hover:border-blue-100" />
                         <div>
                           <p className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight italic">{payment.studentId?.name || payment.studentName || 'Unidentified'}</p>
                           <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest font-mono">Ref: {(payment._id || payment.id).slice(-8).toUpperCase()}</p>

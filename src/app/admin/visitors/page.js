@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/contexts/ToastContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { visitorService } from "@/services/visitorService";
+import Avatar from "@/components/ui/Avatar";
 
 const CONTAINER_VARIANTS = {
   hidden: { opacity: 0 },
@@ -354,13 +355,7 @@ export default function AdminVisitorsPage() {
                         >
                            <td className="px-10 py-9" onClick={() => setSelectedVisitor(v)}>
                               <div className="flex items-center gap-6">
-                                 <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center text-slate-400 text-lg font-black italic border border-slate-200 shadow-sm group-hover:bg-slate-900 group-hover:text-white transition-all shrink-0">
-                                    {v.visitorImage ? (
-                                      <img src={v.visitorImage} alt={v.visitorName} className="w-full h-full object-cover" />
-                                    ) : (
-                                      v.visitorName?.[0]
-                                    )}
-                                 </div>
+                                 <Avatar src={v.visitorImage} name={v.visitorName} size={16} className="shadow-sm group-hover:shadow-xl transition-all" />
                                  <div className="flex flex-col">
                                     <p className="text-lg font-black text-slate-900 uppercase tracking-tighter italic group-hover:text-indigo-600 transition-colors leading-none">{v.visitorName}</p>
                                     <div className="flex items-center gap-2 mt-2">
@@ -373,9 +368,9 @@ export default function AdminVisitorsPage() {
                            </td>
                            <td className="px-10 py-9">
                               <div className="flex items-center gap-3">
-                                 <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                    <User size={14} />
-                                 </div>
+                                 {v.studentName !== 'HOSTEL-WIDE' && (
+                                   <Avatar src={v.studentId?.profileImage} name={v.studentName} size={8} />
+                                 )}
                                   <span className={`text-[13px] font-black uppercase italic leading-none ${v.studentName === 'HOSTEL-WIDE' ? 'text-indigo-600' : 'text-slate-600'}`}>
                                     {v.studentName === 'HOSTEL-WIDE' ? 'PROTOCOL GUEST' : v.studentName}
                                   </span>

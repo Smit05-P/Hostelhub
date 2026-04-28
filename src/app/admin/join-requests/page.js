@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import Avatar from "@/components/ui/Avatar";
 
 import { SkeletonHero, SkeletonCard, Shimmer } from "@/components/ui/Skeleton";
 
@@ -336,9 +337,7 @@ export default function JoinRequestsPage() {
                     >
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-6">
-                          <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center font-black text-slate-400 text-lg uppercase italic shadow-inner group-hover:bg-white group-hover:border-indigo-200 transition-all">
-                            {req.userName?.[0] || "?"}
-                          </div>
+                          <Avatar src={req.userImage || req.photoURL} name={req.userName} size={14} className="group-hover:bg-white group-hover:border-indigo-200" />
                           <div>
                             <p className="text-lg font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase italic tracking-tighter">{req.userName}</p>
                             <div className="flex items-center gap-1.5 text-[9px] text-slate-400 font-black uppercase tracking-widest mt-1">
@@ -462,10 +461,8 @@ export default function JoinRequestsPage() {
                     >
                       <div className="flex items-center justify-between">
                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center font-black text-slate-400 italic">
-                               {req.userName?.[0]}
-                            </div>
-                            <div>
+                             <Avatar src={req.userImage || req.photoURL} name={req.userName} size={12} className="bg-white" />
+                             <div>
                                <p className="text-base font-black text-slate-900 uppercase italic leading-none">{req.userName}</p>
                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5 truncate max-w-[150px] italic">{req.userEmail}</p>
                             </div>

@@ -116,7 +116,7 @@ export async function GET(request) {
 
     // 2. Fetch all fees for UI
     const allFees = await Fee.find({ hostelId })
-      .populate('studentId', 'name email')
+      .populate('studentId', 'name email profileImage')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -140,6 +140,7 @@ export async function GET(request) {
         id: f._id,
         studentName: f.studentId?.name || f.studentName || "Unknown",
         email: f.studentId?.email || "No email",
+        profileImage: f.studentId?.profileImage || null,
         amount: f.amount,
         status: statusLower.charAt(0).toUpperCase() + statusLower.slice(1),
         date: f.createdAt,

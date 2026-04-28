@@ -12,7 +12,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { hostelId, userId, userName } = await request.json();
+    const { hostelId, userId, userName, userImage } = await request.json();
 
     if (!hostelId || !userId) {
       return NextResponse.json(
@@ -42,6 +42,7 @@ export async function POST(request) {
       userId,
       userName: userName || "Student",
       userEmail: session.email || "",
+      userImage: userImage || "",
       hostelId,
       hostelName: hostel?.name || "Hostel",
     });
@@ -107,6 +108,7 @@ export async function GET(request) {
       userId: req.userId,
       userName: req.userName,
       userEmail: req.userEmail,
+      userImage: req.userImage,
       hostelId: req.hostelId,
       hostelName: req.hostelName,
       method: req.method || 'search',

@@ -6,7 +6,7 @@ export const roomService = {
     await dbConnect();
     return await Room.find({ hostelId })
       .select('roomNumber capacity rent status occupants floor type')
-      .populate('occupants', 'name email roomId')
+      .populate('occupants', 'name email roomId profileImage')
       .lean();
   },
 
@@ -14,7 +14,7 @@ export const roomService = {
     await dbConnect();
     return await Room.findById(id)
       .select('roomNumber capacity rent status occupants floor type')
-      .populate('occupants', 'name email roomId')
+      .populate('occupants', 'name email roomId profileImage')
       .lean();
   },
 

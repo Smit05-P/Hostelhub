@@ -23,7 +23,7 @@ export const complaintService = {
     const complaints = await Complaint.find(query)
       .sort({ _id: -1 })
       .limit(limit + 1)
-      .populate('studentId', 'name email roomId')
+      .populate('studentId', 'name email roomId profileImage')
       .lean();
 
     const hasNextPage = complaints.length > limit;
@@ -55,7 +55,7 @@ export const complaintService = {
   async getComplaintById(id) {
     await dbConnect();
     const complaint = await Complaint.findById(id)
-      .populate('studentId', 'name email roomId')
+      .populate('studentId', 'name email roomId profileImage')
       .lean();
     
     if (complaint) {
