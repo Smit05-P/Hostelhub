@@ -23,6 +23,7 @@ export default function SaaSRoleToggle({ role, setRole, className = "" }) {
             transition={{ type: "spring", bounce: 0.22, duration: 0.6 }}
           />
         )}
+        <span className="relative z-10 text-[16px] transition-transform group-hover:scale-110">🎓</span>
         <span className="relative z-10 tracking-tight">Student Access</span>
       </button>
 
@@ -41,6 +42,7 @@ export default function SaaSRoleToggle({ role, setRole, className = "" }) {
             transition={{ type: "spring", bounce: 0.22, duration: 0.6 }}
           />
         )}
+        <span className="relative z-10 text-[16px] transition-transform group-hover:scale-110">🔑</span>
         <span className="relative z-10 tracking-tight">Admin Control</span>
       </button>
     </div>
