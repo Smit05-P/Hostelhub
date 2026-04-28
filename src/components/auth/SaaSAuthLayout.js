@@ -1,121 +1,225 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, Sparkles, ShieldCheck, Star } from "lucide-react";
+import { Building2, Users, CheckCircle2, Star } from "lucide-react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 
 export default function SaaSAuthLayout({ children, tagline = "Smarter Hostel Management" }) {
+  // Magnetic effect for logo
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springConfig = { damping: 20, stiffness: 200 };
+  const logoX = useSpring(mouseX, springConfig);
+  const logoY = useSpring(mouseY, springConfig);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    mouseX.set(x * 0.15);
+    mouseY.set(y * 0.15);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
   return (
-    <div className="min-h-screen bg-[#FDFDFF] flex flex-col md:flex-row overflow-hidden font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen flex flex-col md:flex-row overflow-hidden font-sans selection:bg-[#4F46E5]/30">
       
-      {/* Left Brand Panel (Premium Light Theme) */}
-      <div className="hidden md:flex md:w-[40%] lg:w-[45%] bg-[#F8FAFF] relative flex-col justify-between p-12 overflow-hidden border-r border-slate-100">
-        {/* Subtle Background Elements */}
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/5 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-500/5 blur-[100px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
-        
-        <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" 
-             style={{ backgroundImage: `radial-gradient(circle at 2px 2px, #6366f1 1px, transparent 0)`, backgroundSize: '24px 24px' }} />
+      {/* LEFT PANEL (55%): Branding Side */}
+      <motion.div 
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+        className="hidden md:flex md:w-[55%] lg:w-[50%] bg-[#0F0F1A] relative flex-col justify-between p-12 lg:p-20 overflow-hidden border-r border-white/5"
+      >
+        {/* ... (Mesh code remains same) ... */}
+        {/* Animated Gradient Mesh / Blobs */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <motion.div 
+            animate={{ 
+              x: [0, 80, -40, 0], 
+              y: [0, 100, 60, 0],
+              scale: [1, 1.3, 0.8, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-indigo-600/20 blur-[140px] rounded-full" 
+          />
+          <motion.div 
+            animate={{ 
+              x: [0, -60, 40, 0], 
+              y: [0, -80, -40, 0],
+              scale: [1, 1.2, 0.9, 1],
+              opacity: [0.2, 0.4, 0.2]
+            }}
+            transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute bottom-[-20%] left-[-15%] w-[700px] h-[700px] bg-violet-600/20 blur-[130px] rounded-full" 
+          />
+          <div className="absolute inset-0 opacity-[0.05]" 
+               style={{ backgroundImage: `radial-gradient(circle at 2px 2px, #4F46E5 1px, transparent 0)`, backgroundSize: '40px 40px' }} />
+        </div>
 
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-[#6366f1] rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            </div>
-            <span className="text-[24px] font-extrabold text-slate-900 tracking-tight font-jakarta">HostelHub</span>
-          </Link>
+          <motion.div
+            style={{ x: logoX, y: logoY }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            className="inline-block"
+          >
+            <Link href="/" className="flex items-center gap-3.5 group">
+              <div className="w-13 h-13 bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-500">
+                <Building2 size={26} strokeWidth={2.5} />
+              </div>
+              <span className="text-[32px] font-black text-white tracking-tight font-sora">HostelHub</span>
+            </Link>
+          </motion.div>
           
-          <div className="mt-20 max-w-[440px]">
-             <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full mb-6">
-                <Sparkles size={12} className="text-[#6366f1]" />
-                <span className="text-[10px] font-bold text-[#6366f1] uppercase tracking-wider text-center">Transforming Living</span>
-             </div>
+          <div className="mt-28 max-w-[580px]">
+             <motion.div 
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.6, delay: 0.3 }}
+               className="inline-flex items-center gap-2.5 px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-10 backdrop-blur-sm shadow-xl"
+             >
+                <span className="text-amber-400">⭐</span>
+                <span className="text-[11px] font-black text-white/90 uppercase tracking-[0.25em]">The Gold Standard</span>
+             </motion.div>
              
-             <h2 className="text-[40px] lg:text-[52px] leading-[1.1] font-extrabold text-slate-900 font-jakarta tracking-tight">
-               The Future Of <br/>
-               <span className="bg-gradient-to-br from-[#6366f1] to-[#3b82f6] text-transparent bg-clip-text">Hostel Living.</span>
-             </h2>
-             <p className="mt-6 text-slate-500 text-[18px] font-medium leading-[1.6]">
-               {tagline} — Join 2,000+ hostels who have switched to smarter management.
-             </p>
+             <motion.h2 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+               className="text-[64px] lg:text-[76px] leading-[0.95] font-extrabold text-white font-sora tracking-tight"
+             >
+               Elevate Your <br/>
+               <span className="bg-gradient-to-r from-[#4F46E5] via-[#818cf8] to-[#c084fc] text-transparent bg-clip-text">Hostel Experience.</span>
+             </motion.h2>
+
+             <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, delay: 0.5 }}
+               className="mt-10 space-y-4"
+             >
+                <p className="text-white/80 text-[22px] font-medium leading-[1.4] font-dm">
+                  Smarter Hostel Management
+                </p>
+                <p className="text-white/50 text-[17px] font-medium leading-[1.6] max-w-[480px]">
+                  Enterprise-grade platform designed for the next generation of modern living spaces and communities.
+                </p>
+             </motion.div>
           </div>
         </div>
 
-        {/* Dynamic Social Proof Card */}
-        <div className="relative z-10 bg-white border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-6 rounded-[24px] max-w-[340px]">
-           <div className="flex items-center gap-4 mb-5">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-[#6366f1] shadow-sm ring-1 ring-indigo-100/50">
-                 <Building2 size={24} />
+        {/* Floating Stat Card with Glassmorphism */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10 bg-white/[0.03] backdrop-blur-[24px] border border-white/10 shadow-[0_32px_64px_rgba(0,0,0,0.3)] p-9 rounded-[40px] max-w-[420px] animate-float"
+        >
+           <div className="flex items-center gap-6 mb-10">
+              <div className="w-16 h-16 rounded-3xl bg-[#4F46E5]/20 flex items-center justify-center text-[#818cf8] border border-white/5">
+                 <Users size={32} strokeWidth={2} />
               </div>
-              <div className="flex flex-col">
-                 <span className="text-slate-900 font-extrabold text-[20px]">14,000+</span>
-                 <span className="text-slate-400 text-[11px] font-bold uppercase tracking-[1.5px]">Active Residents</span>
+              <div className="flex flex-col gap-1">
+                 <div className="flex items-center gap-2">
+                   <span className="text-white font-black text-[30px] font-sora tracking-tight">14.2k</span>
+                   <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                     <CheckCircle2 size={14} className="text-white" />
+                   </div>
+                 </div>
+                 <span className="text-white/40 text-[13px] font-bold uppercase tracking-[0.15em]">Active Residents</span>
               </div>
            </div>
            
-           <div className="flex flex-col gap-3 mb-5">
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500">
-                 <span>Occupancy Rate</span>
-                 <span className="text-indigo-600">92%</span>
+           <div className="space-y-4">
+              <div className="flex items-center justify-between text-[14px] font-bold">
+                 <span className="text-white/60">Platform Uptime</span>
+                 <span className="text-emerald-400 font-mono">99.9%</span>
               </div>
-              <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                 <div className="h-full w-[92%] bg-gradient-to-r from-[#6366f1] to-[#3b82f6] rounded-full" />
+              <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden p-[3px]">
+                 <motion.div 
+                   initial={{ width: 0 }}
+                   animate={{ width: "99.9%" }}
+                   transition={{ duration: 2, delay: 1.2, ease: "easeOut" }}
+                   className="h-full bg-gradient-to-r from-emerald-400 to-[#10b981] rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)]" 
+                 />
               </div>
            </div>
 
-           <div className="flex items-center gap-1.5 pt-4 border-t border-slate-50">
-              <div className="flex -space-x-2">
+           <div className="flex items-center gap-4 mt-10 pt-8 border-t border-white/5">
+              <div className="flex -space-x-3.5">
                  {[1,2,3,4].map(i => (
-                   <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-200" />
+                   <div key={i} className="w-10 h-10 rounded-full border-2 border-[#161622] bg-white/10 overflow-hidden shadow-lg">
+                      <img src={`https://i.pravatar.cc/100?img=${i+15}`} alt="User" className="w-full h-full object-cover" />
+                   </div>
                  ))}
+                 <div className="w-10 h-10 rounded-full border-2 border-[#161622] bg-[#4F46E5] flex items-center justify-center text-[11px] font-black text-white shadow-lg">
+                    +2k
+                 </div>
               </div>
-              <div className="flex items-center gap-1 ml-2">
-                 <Star size={10} className="fill-amber-400 text-amber-400" />
-                 <span className="text-[11px] font-bold text-slate-600">4.9/5 Average Rating</span>
+              <div className="flex flex-col gap-1.5">
+                 <div className="flex items-center gap-1">
+                    {[1,2,3,4,5].map(i => <Star key={i} size={13} className="fill-amber-400 text-amber-400" />)}
+                 </div>
+                 <span className="text-[12px] font-bold text-white/50 leading-none">Loved by hostel managers globally</span>
               </div>
            </div>
-        </div>
-      </div>
-
-      {/* Right Form Panel (Clean Light Theme) */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative bg-[#FDFDFF]">
-        {/* Abstract Background Decoration */}
-        <div className="absolute inset-0 bg-[#F8FAFF] opacity-40 -z-10" />
-        <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-indigo-500/5 blur-[100px] rounded-full" />
-        <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-blue-500/5 blur-[100px] rounded-full" />
+        </motion.div>
+      </motion.div>      {/* RIGHT PANEL (45%): Login Form Side */}
+      <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-10 md:p-16 relative bg-[#FAFAFA]">
+        {/* Subtle Decorative Accents */}
+        <div className="absolute top-[-10%] right-[-5%] w-[350px] h-[350px] bg-[#4F46E5]/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[350px] h-[350px] bg-[#7C3AED]/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute inset-0 bg-slate-50/50 backdrop-blur-[2px] pointer-events-none md:hidden" />
 
         <div className="w-full max-w-[480px] relative z-10">
-          {/* Mobile Header (Only on small screens) */}
-          <div className="md:hidden flex flex-col items-center gap-3 mb-10 text-center">
-             <Link href="/" className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-[#6366f1] rounded-xl flex items-center justify-center text-white">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
+          {/* Mobile Header Visibility */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="md:hidden flex flex-col items-center gap-4 mb-10 text-center"
+          >
+             <Link href="/" className="flex items-center gap-3 group">
+                <div className="w-11 h-11 bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] rounded-[14px] flex items-center justify-center text-white shadow-xl shadow-indigo-500/10">
+                   <Building2 size={22} strokeWidth={2.5} />
                 </div>
-                <span className="text-[24px] font-extrabold text-slate-900 tracking-tight font-jakarta">HostelHub</span>
+                <span className="text-2xl font-black text-[#0F0F1A] tracking-tight font-sora">HostelHub</span>
              </Link>
-             <p className="text-[14px] font-semibold text-slate-500 tracking-wide uppercase px-4 py-1.5 bg-slate-50 border border-slate-100 rounded-full">{tagline}</p>
-          </div>
+             <p className="text-[10px] font-black text-[#4F46E5] tracking-[0.2em] uppercase px-5 py-2 bg-white border border-slate-100 rounded-full shadow-md">{tagline}</p>
+          </motion.div>
 
-          {/* Form Card (Premium White Style) */}
-          <div className="w-full bg-white rounded-[32px] shadow-[0_30px_60px_-12px_rgba(0,0,0,0.06),0_18px_36px_-18px_rgba(0,0,0,0.08)] p-8 sm:p-12 border border-slate-100 ring-1 ring-white">
+          {/* Form Content Wrapper */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full bg-white rounded-[32px] sm:rounded-[48px] shadow-[0_32px_120px_rgba(0,0,0,0.06)] p-7 sm:p-14 border border-slate-100"
+          >
             {children}
-          </div>
+          </motion.div>
           
-          <div className="mt-10 flex items-center justify-center gap-6 opacity-60">
-             <div className="flex items-center gap-2">
-                <ShieldCheck size={14} className="text-emerald-500" />
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">SSL Secure</span>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="mt-14 flex items-center justify-center gap-10 opacity-70"
+          >
+             <div className="flex items-center gap-3 grayscale hover:grayscale-0 transition-all duration-300">
+                <CheckCircle2 size={16} className="text-[#4F46E5]" />
+                <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">Enterprise Grade</span>
              </div>
-             <div className="w-1 h-1 bg-slate-200 rounded-full" />
-             <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">256-bit Encryption</span>
+             <div className="w-1.5 h-1.5 bg-slate-200 rounded-full" />
+             <div className="flex items-center gap-3 grayscale hover:grayscale-0 transition-all duration-300">
+                <span className="text-[16px]">🔐</span>
+                <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">256-bit AES</span>
              </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

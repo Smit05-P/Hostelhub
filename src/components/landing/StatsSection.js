@@ -14,11 +14,11 @@ function CountUp({ end, duration = 2000, suffix = "" }) {
       const animate = (timestamp) => {
         if (!startTime.current) startTime.current = timestamp;
         const progress = Math.min((timestamp - startTime.current) / duration, 1);
-        
+
         // Easing function: easeOutExpo
         const easeOutExpo = 1 - Math.pow(2, -10 * progress);
         const currentCount = Math.floor(easeOutExpo * end);
-        
+
         setCount(currentCount);
         countRef.current = currentCount;
 
@@ -58,24 +58,24 @@ export default function StatsSection() {
       <div className="max-w-[1440px] mx-auto px-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {stats.map((stat, idx) => (
-            <div 
-              key={idx} 
+            <div
+              key={idx}
               className="group flex flex-col items-center text-center relative"
             >
               {/* Vertical line separator for desktop */}
               {idx !== 0 && (
                 <div className="hidden lg:block absolute left-[-4px] top-1/2 -translate-y-1/2 w-px h-16 bg-slate-200" />
               )}
-              
+
               <div className="text-[40px] md:text-[56px] lg:text-[64px] font-extrabold text-slate-900 font-jakarta tracking-tighter leading-none">
                 {stat.prefix}
-                <CountUp 
-                  end={stat.num} 
-                  suffix={stat.suffix} 
+                <CountUp
+                  end={stat.num}
+                  suffix={stat.suffix}
                   duration={2500}
                 />
               </div>
-              
+
               <div className="mt-4 text-[12px] md:text-[14px] text-slate-400 font-bold tracking-[2px] uppercase">
                 {stat.label}
               </div>

@@ -146,15 +146,33 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try {
+      console.log("[AUTH] Initiating logout...");
       await axios.delete('/api/auth/session');
+      
+      // Clear all state
       setUser(null);
+      setUserData(null);
       setRole(null);
+      setActiveHostelId(null);
+      setActiveHostelData(null);
+      setHostelStatus("NO_HOSTEL");
+      setHasPendingRequest(false);
+      
+      // Clear storage
       sessionStorage.removeItem("hostel-id");
+      localStorage.removeItem("hostel-id"); // Just in case it's in localStorage
+      
+      console.log("[AUTH] Logout successful, redirecting...");
       router.push("/login");
     } catch (e) {
-      console.error("Auth: Logout failed", e);
+      console.error("[AUTH] Logout failed:", e);
+      // Fallback: Clear client state anyway if API fails
+      setUser(null);
+      setUserData(null);
+      router.push("/login");
     }
   }, [router]);
+
 
   const refreshStudentHostel = useCallback(async (hostelId) => {
     setActiveHostelId(hostelId);

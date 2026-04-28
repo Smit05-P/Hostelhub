@@ -34,8 +34,8 @@ export default function Testimonials() {
   return (
     <section className="bg-[#FDFDFF] py-24 sm:py-32 relative overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-6">
-        
-        <div 
+
+        <div
           ref={headerRef}
           className={`text-center max-w-[800px] mx-auto transition-all duration-700 ${headerInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
         >
@@ -66,7 +66,7 @@ function TestimonialCard({ rev, delay }) {
   const [ref, inView] = useScrollAnimation({ triggerOnce: true, threshold: 0.1 });
 
   return (
-    <div 
+    <div
       ref={ref}
       style={{ transitionDelay: `${delay}ms` }}
       className={`group bg-white border border-slate-100 rounded-[32px] p-8 md:p-10 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-100 transition-all duration-700 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}

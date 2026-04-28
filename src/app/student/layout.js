@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import StudentSidebar from "@/components/StudentSidebar";
 import TopNavbar from "@/components/TopNavbar";
-import StudentMobileNav from "@/components/StudentMobileNav";
 
 
 export default function StudentLayout({ children }) {
@@ -49,10 +48,6 @@ export default function StudentLayout({ children }) {
              </div>
           </main>
         </div>
-
-        {/* Mobile Navigation Hub */}
-        <StudentMobileNav />
-
 
       </div>
     </ProtectedRoute>

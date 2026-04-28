@@ -40,10 +40,10 @@ export default function HowItWorks() {
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-50/50 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="max-w-[1440px] mx-auto px-6 relative z-10">
-        
+
         {/* Header */}
         <div ref={headerRef} className={`flex flex-col items-center mb-20 transition-all duration-700 ease-out ${headerInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-           <div className="inline-flex items-center justify-center h-[34px] px-4 bg-white border border-slate-200/80 rounded-full mb-6 shadow-sm">
+          <div className="inline-flex items-center justify-center h-[34px] px-4 bg-white border border-slate-200/80 rounded-full mb-6 shadow-sm">
             <span className="text-[12px] font-bold text-[#6366f1] tracking-[1px] uppercase">How It Works</span>
           </div>
           <h2 className="text-center text-[36px] md:text-[48px] font-extrabold text-slate-900 font-jakarta tracking-tight">
@@ -61,7 +61,7 @@ export default function HowItWorks() {
             const [stepRef, stepInView] = useScrollAnimation({ triggerOnce: true, threshold: 0.1 });
             return (
               <React.Fragment key={idx}>
-                <div 
+                <div
                   ref={stepRef}
                   style={{ transitionDelay: `${idx * 200}ms` }}
                   className={`relative flex flex-col items-center lg:items-start text-center lg:text-left flex-1 group w-full max-w-[360px] transition-all duration-1000 ease-out ${stepInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
@@ -69,7 +69,7 @@ export default function HowItWorks() {
                   <div className="absolute -top-[50px] sm:-top-[60px] left-1/2 lg:left-0 -translate-x-1/2 lg:translate-x-0 opacity-[0.05] font-jakarta font-extrabold text-[80px] sm:text-[100px] tracking-tight text-slate-900 select-none group-hover:opacity-[0.08] transition-opacity">
                     {step.num}
                   </div>
-                  
+
                   <div className={`w-16 h-16 sm:w-20 sm:h-20 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center ${step.bg} ${step.color} relative z-10 transition-all group-hover:scale-110 group-hover:rotate-3 shadow-lg shadow-indigo-500/5 duration-500`}>
                     <step.icon className="w-8 h-8 sm:w-10 sm:h-10 lg:w-8 lg:h-8" />
                   </div>
@@ -77,7 +77,7 @@ export default function HowItWorks() {
                   <h3 className="mt-8 text-[22px] sm:text-[24px] font-extrabold text-slate-900 font-jakarta tracking-tight">
                     {step.title}
                   </h3>
-                  
+
                   <p className="mt-3 text-[15px] sm:text-[16px] text-slate-500 leading-relaxed font-medium">
                     {step.desc}
                   </p>

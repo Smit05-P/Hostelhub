@@ -35,14 +35,14 @@ export default function Footer() {
   ];
 
   return (
-    <footer 
+    <footer
       ref={ref}
       className={`bg-[#FDFDFF] pt-24 pb-12 relative overflow-hidden border-t border-slate-100 transition-all duration-1000 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
     >
       <div className="max-w-[1440px] mx-auto px-6">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 lg:gap-8 pb-16 border-b border-slate-100">
-          
+
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 group">
@@ -59,8 +59,8 @@ export default function Footer() {
             </p>
             <div className="mt-8 flex items-center gap-3">
               {socialLinks.map((social, idx) => (
-                <a 
-                  key={idx} 
+                <a
+                  key={idx}
                   href={social.href}
                   className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-100 transition-all shadow-sm"
                   aria-label={social.name}
@@ -78,8 +78,8 @@ export default function Footer() {
               <ul className="flex flex-col gap-3">
                 {col.links.map((link) => (
                   <li key={link}>
-                    <Link 
-                      href="#" 
+                    <Link
+                      href="#"
                       className="text-[15px] text-slate-500 font-semibold hover:text-indigo-600 transition-colors flex items-center gap-1 group"
                     >
                       {link}
@@ -90,7 +90,7 @@ export default function Footer() {
               </ul>
             </div>
           ))}
-          
+
         </div>
 
         {/* Bottom Bar */}

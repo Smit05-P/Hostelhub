@@ -1,12 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Sora:wght@100..800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc; /* Slate 50 */
-  --foreground: #0f172a; /* Slate 900 */
-  --primary: #4f46e5; /* Indigo 600 */
+  --background: #f8fafc;
+  /* Slate 50 */
+  --foreground: #0f172a;
+  /* Slate 900 */
+  --primary: #4f46e5;
+  /* Indigo 600 */
   --primary-foreground: #ffffff;
-  
+
   /* SaaS Professional Redesign Theme Tokens */
   --saas-bg: #f8fafc;
   --saas-card: #ffffff;
@@ -22,7 +26,7 @@
   --saas-ring: rgba(79, 70, 229, 0.1);
   --premium-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --premium-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  
+
   /* Intel AI Theme Tokens */
   --intel-primary: #6366f1;
   --intel-bg: rgba(255, 255, 255, 0.7);
@@ -33,28 +37,55 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Inter', 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-sora: 'Sora', sans-serif;
+  --font-dm: 'DM Sans', sans-serif;
   --font-jakarta: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   --radius-4xl: 2rem;
   --radius-5xl: 2.5rem;
   --radius-pill: 9999px;
-  
+
   /* Custom Animations */
   --animate-intel-pulse: intel-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-float: float 6s ease-in-out infinite;
   --animate-shimmer: shimmer-sweep 0.8s ease forwards;
+  --animate-mesh: mesh 15s ease-in-out infinite alternate;
 }
 
+@keyframes mesh {
+  0% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(5%, 10%) scale(1.1); }
+  66% { transform: translate(-5%, 5%) scale(0.9); }
+  100% { transform: translate(0,0) scale(1); }
+}
+
+
 @keyframes intel-pulse {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 body {
@@ -63,10 +94,10 @@ body {
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
+
   /* Prevent horizontal bounce and pull-to-refresh on mobile */
   overscroll-behavior: none;
-  
+
   /* Disable complex gestures (pinch, double-tap zoom) but allow normal scrolling */
   touch-action: pan-x pan-y;
 }
@@ -105,18 +136,37 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(100%); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* SaaS Professional Glassmorphism */
@@ -138,15 +188,15 @@ body {
 }
 
 /* Floating Label Utilities (Standardized) */
-.floating-label-input:placeholder-shown + label {
+.floating-label-input:placeholder-shown+label {
   top: 50%;
   transform: translateY(-50%);
   font-size: 14px;
   color: var(--saas-text-muted);
 }
 
-.floating-label-input:not(:placeholder-shown) + label,
-.floating-label-input:focus + label {
+.floating-label-input:not(:placeholder-shown)+label,
+.floating-label-input:focus+label {
   top: 8px;
   font-size: 11px;
   color: var(--saas-primary);
@@ -188,17 +238,27 @@ body {
 
 /* ── Shimmer Animation ─────────────────────────────────────────────────── */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes shimmer-sweep {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(250%); }
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -208,15 +268,17 @@ body {
   position: relative;
   overflow: hidden;
 }
+
 .btn-shimmer::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.15) 50%, transparent 60%);
   transform: translateX(-100%);
   transition: none;
   pointer-events: none;
 }
+
 .btn-shimmer:hover::after {
   animation: shimmer-sweep 0.6s ease forwards;
 }
@@ -226,6 +288,7 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar,
 .no-scrollbar::-webkit-scrollbar {
   display: none;

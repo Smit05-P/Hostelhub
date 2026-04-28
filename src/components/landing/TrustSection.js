@@ -19,7 +19,7 @@ export default function TrustSection() {
   ];
 
   return (
-    <section 
+    <section
       ref={ref}
       className={`bg-white py-14 overflow-hidden border-b border-slate-100 relative z-10 transition-all duration-1000 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
     >
@@ -29,15 +29,15 @@ export default function TrustSection() {
         </p>
 
         {/* Marquee Container with Mask */}
-        <div 
-          className="relative flex overflow-hidden w-full max-w-full group" 
+        <div
+          className="relative flex overflow-hidden w-full max-w-full group"
           style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}
         >
           <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">
             {/* Duplicate logos strictly via code structure for CSS loop */}
             {[...logos, ...logos].map((Logo, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className="flex items-center gap-3 px-8 text-slate-400 opacity-60 hover:opacity-100 transition-all duration-300 cursor-pointer"
               >
                 <Logo.icon size={26} className="text-[#6366f1] opacity-70 transition-all duration-300" />

@@ -36,13 +36,13 @@ export default function LandingPage() {
     <main className="min-h-screen bg-[#FDFDFF] text-[#0F172A] selection:bg-[#6366f1]/30 selection:text-slate-900 font-sans scroll-smooth leading-relaxed">
       <ForceLightMode />
       {/* Scroll Progress Bar */}
-      <div 
+      <div
         className="fixed top-0 left-0 h-[2px] bg-gradient-to-r from-[#6366f1] to-[#3b82f6] z-[9999] transition-all duration-150 ease-out"
         style={{ width: scrollProgress }}
       />
-      
+
       <Navbar />
-      
+
       <div className="flex flex-col w-full relative z-0">
         <Hero />
         <TrustSection />

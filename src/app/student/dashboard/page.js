@@ -8,7 +8,7 @@ import {
   TrendingUp, ArrowUpRight, Plus, DollarSign, Bell,
   Clock, ArrowRight, Wallet, Calendar, ShieldCheck, Loader2, Sparkles,
   Zap, Heart, Target, Maximize2, Building2, CreditCard, ShieldAlert,
-  MapPin, CheckCircle, AlertTriangle, UserCircle, RefreshCw
+  MapPin, CheckCircle, AlertTriangle, UserCircle, RefreshCw, ZapOff
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
@@ -93,7 +93,7 @@ export default function StudentDashboardPage() {
   const currentFee = data?.currentFee || null;
   const notices = data?.notices || [];
   
-  const isApproved = hostelStatus === "APPROVED";
+  const isApproved = hostelStatus === "APPROVED" || hostelStatus === "Approved";
   const loading = isApproved && isLoading && !data;
 
   if (loading) {
@@ -128,20 +128,55 @@ export default function StudentDashboardPage() {
     );
   }
 
+  // Show "Central Hub" error ONLY when we have zero data to show.
   if (error && !data) {
+    const isAuthError = error.message?.toLowerCase().includes("session") || error.message?.toLowerCase().includes("log in");
+    
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-400 gap-6 p-4">
-         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center space-y-4 max-w-sm">
-            <AlertTriangle className="w-16 h-16 text-rose-500 mx-auto" />
-            <p className="text-2xl font-black text-slate-900 uppercase tracking-tight italic">System Error</p>
-            <p className="text-sm font-bold text-slate-500 uppercase tracking-tight italic">Failed to establish connection with the central hub.</p>
-            <button onClick={() => refreshUser()} className="mt-4 px-8 py-4 bg-indigo-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-xs hover:bg-indigo-700 transition w-full shadow-lg shadow-indigo-600/20 active:scale-95 italic">
-              Reboot Connection
-            </button>
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-4">
+         <motion.div 
+           initial={{ scale: 0.95, opacity: 0 }} 
+           animate={{ scale: 1, opacity: 1 }} 
+           className="text-center space-y-8 max-w-md premium-glass p-12 rounded-[3.5rem] border border-slate-200 shadow-2xl"
+         >
+            <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto text-rose-500 shadow-inner">
+               <AlertTriangle className="w-10 h-10" />
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-2xl font-black text-slate-900 uppercase tracking-tight italic">Terminal Error</p>
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-tight italic leading-relaxed">
+                {error.message || "Failed to establish connection with the central hub. This may be due to a transient network interruption."}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={() => isAuthError ? window.location.href='/login' : window.location.reload()} 
+                className="px-8 py-5 bg-indigo-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-indigo-700 transition w-full shadow-xl shadow-indigo-600/20 active:scale-95 italic flex items-center justify-center gap-3"
+              >
+                {isAuthError ? "Return to Login" : "Re-initialize Stream"}
+                <RefreshCw size={14} />
+              </button>
+              
+              {!isAuthError && (
+                <button 
+                  onClick={() => {
+                    sessionStorage.clear();
+                    window.location.reload();
+                  }} 
+                  className="px-8 py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition w-full italic"
+                >
+                  Force Hard Reset
+                </button>
+              )}
+            </div>
          </motion.div>
       </div>
     );
   }
+
+
 
   if (!isApproved) {
     return (
