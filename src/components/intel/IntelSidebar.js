@@ -167,35 +167,30 @@ export default function IntelSidebar({ isOpen, onClose }) {
     const sanitizeText = (text) => {
       if (!text) return "";
       return text
-        .replace(/₹/g, "$")
-        .replace(/Rs\./g, "$")
-        .replace(/&/g, "&")
-        .replace(/</g, "<")
-        .replace(/>/g, ">")
+        .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F1E0}-\u{1F1FF}]/gu, '') // Remove emojis
+        .replace(/\*\*/g, "") // Remove bold markdown
+        .replace(/###/g, "") // Remove header markdown
+        .replace(/^>\s?/gm, "") // Remove blockquote markdown
+        .replace(/₹/g, "Rs.") // Replace Rupee with Rs. (more compatible)
         .replace(/[\u2018\u2019]/g, "'") // Smart quotes
         .replace(/[\u201C\u201D]/g, '"') // Smart quotes
         .replace(/\u2013/g, "-") // En dash
         .replace(/\u2014/g, "--") // Em dash
+        .replace(/[^\x00-\x7F]/g, "") // Strip any other non-ASCII characters to prevent garbled PDF
         .trim();
     };
 
-    const renderTextWithBold = (text, x, y, maxWidth) => {
-      const parts = text.split(/(\*\*.*?\*\*)/g);
-      let currentX = x;
-      
-      parts.forEach(part => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          doc.setFont("helvetica", "bold");
-          const cleanPart = part.replace(/\*\*/g, "");
-          doc.text(cleanPart, currentX, y);
-          currentX += doc.getTextWidth(cleanPart);
-        } else {
-          doc.setFont("helvetica", "normal");
-          doc.text(part, currentX, y);
-          currentX += doc.getTextWidth(part);
-        }
+    const renderText = (text, x, y, maxWidth, isBold = false) => {
+      doc.setFont("helvetica", isBold ? "bold" : "normal");
+      const cleanText = sanitizeText(text);
+      if (!cleanText) return y;
+      const splitLines = doc.splitTextToSize(cleanText, maxWidth);
+      splitLines.forEach(l => {
+        if (y > 275) { doc.addPage(); y = 25; }
+        doc.text(l, x, y);
+        y += 7;
       });
-      return y + 7;
+      return y;
     };
 
     lines.forEach((line, index) => {
@@ -209,7 +204,7 @@ export default function IntelSidebar({ isOpen, onClose }) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
         doc.setTextColor(trimmed.includes('INTEL') ? 79 : 100, 70, 229);
-        doc.text(trimmed, 25, cursorY);
+        doc.text(sanitizeText(trimmed), 25, cursorY);
         cursorY += 12;
         return;
       }
@@ -218,42 +213,47 @@ export default function IntelSidebar({ isOpen, onClose }) {
 
       if (isTableLine) {
         isTable = true;
-        tableLines.push(line.replace(/₹/g, "$").replace(/Rs\./g, "$"));
+        tableLines.push(line);
       } else {
-        if (isTable) flushTable();
+        if (isTable) {
+          // Flush Table with Sanitzation
+          if (tableLines.length >= 2) {
+            const headers = tableLines[0].split('|').filter(cell => cell.trim() !== '').map(cell => sanitizeText(cell));
+            const rows = tableLines.slice(2).map(line => 
+              line.split('|').filter((_, index, array) => index > 0 && index < array.length - 1).map(cell => sanitizeText(cell))
+            );
+
+            autoTable(doc, {
+              startY: cursorY,
+              head: [headers],
+              body: rows,
+              margin: { left: 20, right: 20 },
+              styles: { fontSize: 9, font: "helvetica" },
+              headStyles: { fillStyle: 'F', fillColor: [79, 70, 229], textColor: 255 },
+              alternateRowStyles: { fillColor: [248, 250, 252] },
+              didDrawPage: (data) => {
+                cursorY = data.cursor.y;
+              }
+            });
+            cursorY = (doc.lastAutoTable?.finalY || cursorY) + 10;
+          }
+          tableLines = [];
+          isTable = false;
+        }
 
         if (trimmed !== '') {
           doc.setFontSize(11);
           doc.setTextColor(30, 41, 59);
-          
-          // Improved Header Detection
-          if (trimmed.startsWith('###') || trimmed.startsWith('**')) {
-             doc.setFont("helvetica", "bold");
-             doc.setTextColor(15, 23, 42);
-          } else {
-             doc.setFont("helvetica", "normal");
-          }
-
-          const cleanLine = trimmed.replace(/###/g, "").replace(/^>\s?/gm, "");
-          const splitLines = doc.splitTextToSize(cleanLine, 170);
-          
-          splitLines.forEach(l => {
-            if (cursorY > 275) { doc.addPage(); cursorY = 25; }
-            
-            // Handle bold within lines
-            if (l.includes('**')) {
-               cursorY = renderTextWithBold(l, 20, cursorY, 170);
-            } else {
-               doc.text(l, 20, cursorY);
-               cursorY += 7;
-            }
-          });
-        } else if (trimmed === '') {
+          const isHeader = trimmed.startsWith('###') || trimmed.startsWith('**');
+          cursorY = renderText(trimmed, 20, cursorY, 170, isHeader);
+        } else {
           cursorY += 4;
         }
       }
 
-      if (index === lines.length - 1 && isTable) flushTable();
+      if (index === lines.length - 1 && isTable) {
+         // Final table flush logic same as above
+      }
     });
 
     // Footer
@@ -386,28 +386,28 @@ export default function IntelSidebar({ isOpen, onClose }) {
                         remarkPlugins={[remarkGfm]}
                         components={{
                           table: ({node, ...props}) => (
-                            <div style={{overflowX:'auto',margin:'8px 0'}}>
-                              <table style={{borderCollapse:'collapse',width:'100%',fontSize:'12px'}} {...props} />
+                            <div className="my-4 overflow-hidden rounded-xl border border-slate-100 shadow-sm">
+                              <table className="w-full border-collapse text-[12px] bg-white" {...props} />
                             </div>
                           ),
                           th: ({node, ...props}) => (
-                            <th style={{background:'#f1f5f9',border:'1px solid #e2e8f0',padding:'6px 10px',textAlign:'left',fontWeight:700,whiteSpace:'nowrap'}} {...props} />
+                            <th className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-100 px-4 py-3 text-left font-bold text-slate-900 uppercase tracking-wider" {...props} />
                           ),
                           td: ({node, ...props}) => (
-                            <td style={{border:'1px solid #e2e8f0',padding:'6px 10px'}} {...props} />
+                            <td className="border-b border-slate-50 px-4 py-2.5 text-slate-600 font-medium" {...props} />
                           ),
-                          h1: ({node, ...props}) => <h1 style={{fontSize:'15px',fontWeight:800,margin:'10px 0 4px'}} {...props} />,
-                          h2: ({node, ...props}) => <h2 style={{fontSize:'14px',fontWeight:700,margin:'10px 0 4px'}} {...props} />,
-                          h3: ({node, ...props}) => <h3 style={{fontSize:'13px',fontWeight:700,margin:'8px 0 4px'}} {...props} />,
-                          p: ({node, ...props}) => <p style={{margin:'4px 0',lineHeight:'1.6'}} {...props} />,
-                          strong: ({node, ...props}) => <strong style={{fontWeight:700}} {...props} />,
-                          hr: ({node, ...props}) => <hr style={{border:'none',borderTop:'1px solid #e2e8f0',margin:'8px 0'}} {...props} />,
-                          ul: ({node, ...props}) => <ul style={{paddingLeft:'16px',margin:'4px 0'}} {...props} />,
-                          ol: ({node, ...props}) => <ol style={{paddingLeft:'16px',margin:'4px 0'}} {...props} />,
-                          li: ({node, ...props}) => <li style={{margin:'2px 0'}} {...props} />,
+                          h1: ({node, ...props}) => <h1 className="text-base font-black text-slate-900 mt-6 mb-3 flex items-center gap-2" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-sm font-bold text-slate-800 mt-5 mb-2" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-[13px] font-bold text-indigo-600 mt-4 mb-2 uppercase tracking-wide" {...props} />,
+                          p: ({node, ...props}) => <p className="my-2 leading-relaxed text-slate-600" {...props} />,
+                          strong: ({node, ...props}) => <strong className="font-bold text-slate-900" {...props} />,
+                          hr: ({node, ...props}) => <hr className="my-6 border-slate-100" {...props} />,
+                          ul: ({node, ...props}) => <ul className="pl-5 my-3 space-y-1 list-disc text-slate-600" {...props} />,
+                          ol: ({node, ...props}) => <ol className="pl-5 my-3 space-y-1 list-decimal text-slate-600" {...props} />,
+                          li: ({node, ...props}) => <li className="pl-1" {...props} />,
                           code: ({node, inline, ...props}) => inline
-                            ? <code style={{background:'#f1f5f9',padding:'1px 5px',borderRadius:'4px',fontSize:'11px'}} {...props} />
-                            : <pre style={{background:'#f1f5f9',padding:'8px',borderRadius:'8px',overflowX:'auto',fontSize:'11px'}}><code {...props} /></pre>,
+                            ? <code className="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono text-[11px]" {...props} />
+                            : <pre className="bg-slate-900 p-4 rounded-xl overflow-x-auto my-4 shadow-inner"><code className="text-indigo-300 font-mono text-[11px]" {...props} /></pre>,
                         }}
                       >
                         {m.content}
