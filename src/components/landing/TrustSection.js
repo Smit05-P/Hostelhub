@@ -35,7 +35,7 @@ export default function TrustSection() {
         >
           <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">
             {/* Duplicate logos strictly via code structure for CSS loop */}
-            {[...logos, ...logos].map((Logo, idx) => (
+            {[...logos, ...logos, ...logos].map((Logo, idx) => (
               <div
                 key={idx}
                 className="flex items-center gap-3 px-8 text-slate-400 opacity-60 hover:opacity-100 transition-all duration-300 cursor-pointer"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowRight, Play, CheckCircle2, LayoutDashboard, Users, CreditCard, ShieldCheck } from "lucide-react";
 import { useScrollAnimation } from "./hooks/useScrollAnimation";
 import { Button } from "./ui/Button";
@@ -8,6 +8,16 @@ import { Button } from "./ui/Button";
 export default function Hero() {
   const [heroRef, heroInView] = useScrollAnimation({ triggerOnce: true });
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  const cycleWords = ["precision.", "confidence.", "speed.", "intelligence."];
+  const [wordIndex, setWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % cycleWords.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section className="relative min-h-[90vh] flex items-center pt-32 pb-20 overflow-hidden bg-[var(--background)]">
@@ -20,7 +30,7 @@ export default function Hero() {
           
           {/* Left Column: Copy & CTA */}
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-sm font-semibold mb-6 border border-[var(--accent)]/20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-sm font-bold mb-6 border border-[var(--accent)]/20">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]"></span>
@@ -29,11 +39,25 @@ export default function Hero() {
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-display font-bold text-[var(--foreground)] leading-[1.1] tracking-tight mb-6">
-              Manage your hostel with <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]">precision.</span>
+              Manage your hostel with{" "}
+              <span className="inline-block overflow-hidden" style={{ verticalAlign: "bottom" }}>
+                <span
+                  key={wordIndex}
+                  className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)] inline-block"
+                  style={{
+                    animationName: "wordSlideIn",
+                    animationDuration: "0.55s",
+                    animationTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+                    animationFillMode: "both",
+                  }}
+                >
+                  {cycleWords[wordIndex]}
+                </span>
+              </span>
             </h1>
             
             <p className="text-lg text-[var(--muted-foreground)] mb-8 leading-relaxed max-w-lg font-medium">
-              A complete operating system for modern student housing. Handle admissions, collect payments, and manage rooms—all from one beautiful dashboard.
+              A complete operating system for modern student housing—handle admissions, collect payments, and manage rooms from one powerful dashboard.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -56,7 +80,7 @@ export default function Hero() {
           </div>
 
           {/* Right Column: Clean UI Mockup */}
-          <div className="relative w-full aspect-square md:aspect-auto md:h-[600px] rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-2xl overflow-hidden flex flex-col">
+          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-2xl overflow-hidden flex flex-col scale-[0.95] sm:scale-100 transition-transform">
             {/* Mockup Header */}
             <div className="h-12 border-b border-[var(--border)] bg-slate-50 flex items-center px-4 justify-between shrink-0">
               <div className="flex gap-2">
@@ -71,9 +95,9 @@ export default function Hero() {
             </div>
 
             {/* Mockup Body */}
-            <div className="flex-1 flex bg-[#F8FAFC]">
+            <div className="flex-1 flex bg-[#F8FAFC] overflow-hidden">
               {/* Sidebar */}
-              <div className="w-16 md:w-48 border-r border-[var(--border)] bg-white flex flex-col p-3 gap-2 shrink-0">
+              <div className="hidden sm:flex w-16 md:w-48 border-r border-[var(--border)] bg-white flex-col p-3 gap-2 shrink-0">
                 <div className="h-8 bg-slate-100 rounded-md mb-4 flex items-center px-2 gap-2 text-slate-400">
                   <div className="w-4 h-4 rounded bg-[var(--accent)] shrink-0"></div>
                   <div className="h-2 w-16 bg-slate-200 rounded hidden md:block"></div>
