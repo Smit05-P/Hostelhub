@@ -164,7 +164,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
   
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [windowWidth, setWindowWidth] = useState(1200);
 
   useEffect(() => {
     setMounted(true);
@@ -172,6 +172,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
     if (saved !== null) setIsCollapsed(saved === "true");
 
     const handleResize = () => setWindowWidth(window.innerWidth);
+    handleResize(); // Initialize on mount
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -313,7 +314,9 @@ export default function AdminSidebar({ isOpen, onClose }) {
             <div className={`flex items-center gap-4 p-4 rounded-[1.8rem] bg-white/[0.02] border border-white/5 ${effectiveIsCollapsed ? "justify-center" : ""}`}>
               <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-white text-[13px] font-black shrink-0 shadow-2xl overflow-hidden relative group/avatar">
                 {userData?.profileImage ? (
-                  <img src={userData.profileImage} alt="Profile" className="w-full h-full object-cover transition-transform duration-500 group-hover/avatar:scale-110" />
+                  <div className="w-full h-full relative">
+                    <img src={userData.profileImage} alt="Profile" className="w-full h-full object-cover transition-transform duration-500 group-hover/avatar:scale-110" />
+                  </div>
                 ) : (
                   <span className="italic">{userInitial}</span>
                 )}

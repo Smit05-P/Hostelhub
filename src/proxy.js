@@ -4,7 +4,7 @@ import * as jose from 'jose';
 const JWT_SECRET = process.env.JWT_SECRET;
 const TOKEN_NAME = 'auth_token';
 
-export async function middleware(request) {
+export async function proxy(request) {
   const token = request.cookies.get(TOKEN_NAME)?.value;
   const url = request.nextUrl.clone();
   

@@ -55,7 +55,7 @@ export default function IntelInsightCard({ hostelId, role, title = "Intel Insigh
       ) : (
         <div className="space-y-4">
           <p className="text-[13px] font-semibold text-slate-800 leading-relaxed italic">
-            "{insight}"
+            &quot;{insight}&quot;
           </p>
           <div className="flex items-center justify-between pt-2">
              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Real-time Analysis</span>

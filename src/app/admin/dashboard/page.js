@@ -152,7 +152,7 @@ export default function AdminDashboardPage() {
               <Shimmer className="w-1/3 h-8 rounded-full mb-8" />
               <div className="flex items-end justify-between h-[200px] gap-8">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Shimmer key={i} className="flex-1 rounded-2xl" style={{ height: `${20 + Math.random() * 60}%` }} />
+                  <Shimmer key={i} className="flex-1 rounded-2xl" style={{ height: `${20 + (i * 10) % 60}%` }} />
                 ))}
               </div>
             </div>

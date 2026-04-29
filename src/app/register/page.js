@@ -5,12 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import axios from "axios";
-import { 
-  Mail, 
-  Lock, 
-  User, 
-  Phone, 
-  ArrowRight, 
+import {
+  Mail,
+  Lock,
+  User,
+  Phone,
   Hotel,
   Check
 } from "lucide-react";
@@ -43,12 +42,15 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+const strengthLabels = ["Weak", "Fair", "Good", "Strong", "Excellent"];
+const strengthColors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-500", "bg-emerald-600"];
+
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [role, setRole] = useState("student");
   const [passwordStrength, setPasswordStrength] = useState(0);
-  
+
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [googleUser, setGoogleUser] = useState(null);
 
@@ -91,9 +93,6 @@ export default function RegisterPage() {
     setPasswordStrength(strength);
   }, [password]);
 
-  const strengthLabels = ["Weak", "Fair", "Good", "Strong", "Excellent"];
-  const strengthColors = ["bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-500", "bg-emerald-600"];
-
   const onSubmit = async (data) => {
     if (isLoading) return;
     setIsLoading(true);
@@ -126,18 +125,18 @@ export default function RegisterPage() {
   // Google Identity Services callback
   const handleGoogleCredential = useCallback(async (tokenResponse) => {
     if (tokenResponse.error) {
-       console.error("Google Auth Error:", tokenResponse.error);
-       toast.error("Google Sign-In was cancelled or failed.");
-       return;
+      console.error("Google Auth Error:", tokenResponse.error);
+      toast.error("Google Sign-In was cancelled or failed.");
+      return;
     }
-    
+
     setIsGoogleLoading(true);
     try {
       // Fetch user profile using the access token
       const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
         headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
       });
-      
+
       const { sub: uid, email, name, picture: photoURL } = userInfoResponse.data;
 
       const response = await axios.post("/api/auth/google", {
@@ -174,15 +173,17 @@ export default function RegisterPage() {
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      window.googleTokenClient = window.google?.accounts.oauth2.initTokenClient({
-        client_id: clientId,
-        scope: 'email profile openid',
-        callback: handleGoogleCredential,
-      });
+      if (window.google?.accounts?.oauth2) {
+        window.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'email profile openid',
+          callback: handleGoogleCredential,
+        });
+      }
     };
     document.head.appendChild(script);
-    return () => { 
-      if (document.head.contains(script)) document.head.removeChild(script); 
+    return () => {
+      if (document.head.contains(script)) document.head.removeChild(script);
     };
   }, [handleGoogleCredential]);
 
@@ -222,7 +223,7 @@ export default function RegisterPage() {
     <SaaSAuthLayout>
       <ForceLightMode />
       <div className="space-y-6">
-        
+
         <div className="flex justify-center">
           <div className="inline-flex items-center px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-[10px] font-bold text-[#4F46E5] uppercase tracking-widest">
             Step 1 of 2
@@ -241,7 +242,7 @@ export default function RegisterPage() {
         <SaaSRoleToggle role={role} setRole={setRole} />
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <SaaSInput 
+          <SaaSInput
             label="Full Name"
             id="name"
             placeholder="Your full name"
@@ -250,7 +251,7 @@ export default function RegisterPage() {
             icon={User}
           />
 
-          <SaaSInput 
+          <SaaSInput
             label="Email Address"
             id="email"
             type="email"
@@ -267,7 +268,7 @@ export default function RegisterPage() {
                 +91
               </div>
               <div className="flex-1">
-                <SaaSInput 
+                <SaaSInput
                   id="phone"
                   type="tel"
                   placeholder="9876543210"
@@ -282,7 +283,7 @@ export default function RegisterPage() {
 
           {role === "admin" && (
             <>
-              <SaaSInput 
+              <SaaSInput
                 label="Hostel Name"
                 id="hostelName"
                 placeholder="Elite Campus Hostel"
@@ -290,7 +291,7 @@ export default function RegisterPage() {
                 error={errors.hostelName}
                 icon={Hotel}
               />
-              <SaaSInput 
+              <SaaSInput
                 label="Hostel Address"
                 id="address"
                 placeholder="123 Street, City"
@@ -302,7 +303,7 @@ export default function RegisterPage() {
           )}
 
           <div className="space-y-3">
-            <SaaSInput 
+            <SaaSInput
               label="Password"
               id="password"
               type="password"
@@ -312,7 +313,7 @@ export default function RegisterPage() {
               icon={Lock}
               showPasswordToggle={true}
             />
-            
+
             {password && (
               <div className="space-y-1.5 px-1 animate-fade-in">
                 <div className="flex justify-between items-center text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
@@ -323,11 +324,10 @@ export default function RegisterPage() {
                 </div>
                 <div className="flex gap-1 h-1">
                   {[0, 1, 2, 3].map((i) => (
-                    <div 
-                      key={i} 
-                      className={`flex-1 rounded-full transition-all duration-500 ${
-                        i < passwordStrength ? strengthColors[passwordStrength] : "bg-[#E2E8F0]"
-                      }`}
+                    <div
+                      key={i}
+                      className={`flex-1 rounded-full transition-all duration-500 ${i < passwordStrength ? strengthColors[passwordStrength] : "bg-[#E2E8F0]"
+                        }`}
                     />
                   ))}
                 </div>
@@ -335,7 +335,7 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <SaaSInput 
+          <SaaSInput
             label="Confirm Password"
             id="confirmPassword"
             type="password"
@@ -349,8 +349,8 @@ export default function RegisterPage() {
           <div className="pt-2">
             <label className="flex items-start gap-3 cursor-pointer group select-none">
               <div className="relative flex items-center justify-center mt-0.5 shrink-0">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   {...register("agreeToTerms")}
                   className="peer shrink-0 appearance-none w-5 h-5 border-2 border-[#E2E8F0] rounded-[6px] bg-white checked:bg-[#4F46E5] checked:border-[#4F46E5] hover:border-[#CBD5E1] transition-all duration-200 shadow-sm"
                 />
@@ -371,12 +371,13 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <SaaSButton 
-            type="submit" 
-            isLoading={isLoading} 
+          <SaaSButton
+            type="submit"
+            isLoading={isLoading}
             className="mt-4"
           >
-            Create Account <ArrowRight size={18} />
+            Create Account
+            {/* <ArrowRight size={18} /> */}
           </SaaSButton>
         </form>
 
@@ -389,8 +390,8 @@ export default function RegisterPage() {
           </span>
         </div>
 
-        <SaaSButton 
-          variant="white" 
+        <SaaSButton
+          variant="white"
           onClick={handleGoogleSignIn}
           isLoading={isGoogleLoading}
           icon={() => (
@@ -419,8 +420,8 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm font-medium text-[#64748B] pt-2">
           Already have an account?{" "}
-          <Link 
-            href="/login" 
+          <Link
+            href="/login"
             className="text-[#4F46E5] font-bold hover:underline decoration-2 underline-offset-4"
           >
             Sign in
@@ -428,7 +429,7 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <RoleSelectionModal 
+      <RoleSelectionModal
         isOpen={isRoleModalOpen}
         onSelect={handleRoleSelect}
         isLoading={isGoogleLoading}

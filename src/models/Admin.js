@@ -15,8 +15,17 @@ const AdminSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
     select: false, // Don't return password by default
+  },
+  authProvider: {
+    type: String,
+    enum: ['email', 'google'],
+    default: 'email',
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'pending'],
+    default: 'active',
   },
   role: {
     type: String,

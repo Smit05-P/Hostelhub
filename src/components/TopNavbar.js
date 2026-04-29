@@ -58,11 +58,11 @@ export default function TopNavbar({ title, onOpen }) {
           </button>
           
           <div className="flex flex-col min-w-0 justify-center">
-             <div className="flex items-center gap-2.5 mb-1.5">
-                <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse shadow-[0_0_10px_rgba(79,70,229,0.5)]" />
-                <span className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.4em] italic leading-none">Synchronized Hub</span>
+             <div className="flex items-center gap-2 mb-1">
+                <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
+                <span className="text-[8px] sm:text-[9px] font-black text-indigo-600 uppercase tracking-[0.4em] italic leading-none">Synchronized Hub</span>
              </div>
-             <h2 className="text-lg sm:text-2xl font-black text-slate-900 italic tracking-tighter uppercase leading-none truncate">
+             <h2 className="text-base sm:text-2xl font-black text-slate-900 italic tracking-tighter uppercase leading-none truncate pr-4">
                {title}
              </h2>
           </div>

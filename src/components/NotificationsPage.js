@@ -132,7 +132,7 @@ export default function NotificationsPage() {
                </div>
                <h3 className="text-lg font-bold text-slate-900">Your inbox is clear</h3>
                <p className="text-sm font-medium text-slate-400 mt-1 max-w-xs mx-auto">
-                 No {filter !== 'all' ? filter : ''} notifications found. We'll alert you when there's new activity.
+                 No {filter !== 'all' ? filter : ''} notifications found. We&apos;ll alert you when there&apos;s new activity.
                </p>
             </div>
           ) : (

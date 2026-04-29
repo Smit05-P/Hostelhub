@@ -19,7 +19,10 @@ export default function AdminLayout({ children }) {
 
   // Global Page Load Animation
   const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isCollectionPage) {
     return (

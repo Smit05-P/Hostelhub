@@ -17,7 +17,7 @@ export default function Hero() {
       setWordIndex((prev) => (prev + 1) % cycleWords.length);
     }, 2800);
     return () => clearInterval(interval);
-  }, []);
+  }, [cycleWords.length]);
 
   return (
     <section className="relative min-h-[90vh] flex items-center pt-32 pb-20 overflow-hidden bg-[var(--background)]">
@@ -38,7 +38,7 @@ export default function Hero() {
               HostelHub 2.0 is now live
             </div>
             
-            <h1 className="text-5xl lg:text-7xl font-display font-bold text-[var(--foreground)] leading-[1.1] tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-display font-bold text-[var(--foreground)] leading-[1.05] tracking-tight mb-8">
               Manage your hostel with{" "}
               <span className="inline-block overflow-hidden" style={{ verticalAlign: "bottom" }}>
                 <span
@@ -56,7 +56,7 @@ export default function Hero() {
               </span>
             </h1>
             
-            <p className="text-lg text-[var(--muted-foreground)] mb-8 leading-relaxed max-w-lg font-medium">
+            <p className="text-base sm:text-lg lg:text-xl text-[var(--muted-foreground)] mb-10 leading-relaxed max-w-xl font-medium">
               A complete operating system for modern student housing—handle admissions, collect payments, and manage rooms from one powerful dashboard.
             </p>
             
@@ -67,7 +67,7 @@ export default function Hero() {
               <Button 
                 variant="outline" 
                 onClick={() => setIsVideoOpen(true)}
-                className="w-full sm:w-auto h-12 px-8 text-base bg-white"
+                className="w-full sm:w-auto h-12 px-8 text-base bg-white !text-slate-700 border-slate-200 hover:bg-slate-50 shadow-sm"
               >
                 <Play size={18} className="mr-2 text-[var(--accent)]" /> Watch Demo
               </Button>

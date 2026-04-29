@@ -32,6 +32,13 @@
   --intel-bg: rgba(255, 255, 255, 0.7);
   --intel-border: rgba(99, 102, 241, 0.15);
   --intel-glow: 0 0 25px rgba(99, 102, 241, 0.1);
+
+  /* Landing Page Accent Tokens */
+  --accent: #4f46e5;
+  --accent-secondary: #06b6d4;
+  --border: #e2e8f0;
+  --muted-foreground: #64748b;
+  --card: #ffffff;
 }
 
 @theme inline {
@@ -320,4 +327,43 @@ body {
 .scrollbar-hide::-webkit-scrollbar,
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ── Fluid Typography Utilities ────────────────────────────────────────── */
+.text-fluid-h1 {
+  font-size: clamp(2.5rem, 8vw + 1rem, 6rem);
+  line-height: 1.1;
+}
+
+.text-fluid-h2 {
+  font-size: clamp(1.5rem, 4vw + 1rem, 3rem);
+  line-height: 1.2;
+}
+
+.text-fluid-p {
+  font-size: clamp(1rem, 1vw + 0.5rem, 1.25rem);
+  line-height: 1.6;
+}
+
+/* ── Safe Area Helpers ────────────────────────────────────────────────── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.min-h-screen-safe {
+  min-height: 100dvh;
+}
+
+/* ── Container Optimization ────────────────────────────────────────────── */
+.main-container {
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }

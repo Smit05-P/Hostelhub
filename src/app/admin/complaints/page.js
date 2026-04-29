@@ -100,10 +100,12 @@ const ComplaintCard = ({ complaint, onUpdateStatus, onDelete, onViewDetails }) =
                         </div>
                      </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
+                   <div className="text-right flex-shrink-0">
                      <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest italic leading-none mb-1">Created</span>
                      <span className="text-[10px] font-black text-slate-900 uppercase italic">
-                        {new Date(complaint.createdAt || Date.now()).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })}
+                        {complaint.createdAt 
+                          ? new Date(complaint.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
+                          : 'Recent'}
                      </span>
                   </div>
                </div>
@@ -318,7 +320,7 @@ export default function AdminComplaintsPage() {
     }
   };
 
-  useEffect(() => { fetchComplaints(); }, [activeHostelId]);
+  useEffect(() => { fetchComplaints(); }, [activeHostelId, fetchComplaints]);
 
   const filteredComplaints = useMemo(() => {
     return complaints.filter(c => {
@@ -404,12 +406,8 @@ export default function AdminComplaintsPage() {
          <div className="relative overflow-hidden rounded-[3rem] sm:rounded-[4rem] bg-slate-900 p-8 sm:p-16 border border-slate-800 shadow-2xl">
             {/* Background Image/Aesthetic */}
             <div className="absolute inset-0 opacity-20 pointer-events-none">
-               <img 
-                 src="/resolution_hub_banner_1776812229238.png" 
-                 alt="Resolution Mesh" 
-                 className="w-full h-full object-cover"
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent z-10" />
+               <div className="w-full h-full bg-slate-800" /> {/* Fallback or colored background */}
             </div>
 
             <div className="relative z-10">

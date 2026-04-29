@@ -226,7 +226,7 @@ export default function StudentSidebar({ isOpen, onClose }) {
         }}
         initial={false}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed inset-y-0 left-0 z-50 flex flex-col bg-[#05070a] text-slate-300 h-screen lg:static border-r border-white/5 overflow-hidden shrink-0 shadow-2xl"
+        className="fixed inset-y-0 left-0 z-50 flex flex-col bg-[#05070a] text-slate-300 h-[100dvh] lg:h-screen lg:static border-r border-white/5 overflow-hidden shrink-0 shadow-2xl pb-[env(safe-area-inset-bottom)]"
       >
         {/* Background Noise/Texture */}
         <div className="absolute inset-0 bg-noise opacity-[0.02] pointer-events-none" />

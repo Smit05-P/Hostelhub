@@ -386,19 +386,24 @@ export default function IntelSidebar({ isOpen, onClose }) {
                         remarkPlugins={[remarkGfm]}
                         components={{
                           table: ({node, ...props}) => (
-                            <div className="my-4 overflow-hidden rounded-xl border border-slate-100 shadow-sm">
-                              <table className="w-full border-collapse text-[12px] bg-white" {...props} />
+                            <div className="my-6 overflow-hidden rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/20 bg-white">
+                              <table className="w-full border-collapse text-[13px]" {...props} />
                             </div>
                           ),
                           th: ({node, ...props}) => (
-                            <th className="bg-slate-50/80 backdrop-blur-sm border-b border-slate-100 px-4 py-3 text-left font-bold text-slate-900 uppercase tracking-wider" {...props} />
+                            <th className="bg-slate-900 text-white border-b border-slate-800 px-6 py-4 text-left font-black uppercase tracking-[0.2em] text-[10px] italic" {...props} />
                           ),
                           td: ({node, ...props}) => (
-                            <td className="border-b border-slate-50 px-4 py-2.5 text-slate-600 font-medium" {...props} />
+                            <td className="border-b border-slate-50 px-6 py-4 text-slate-700 font-bold italic group-hover:text-indigo-600 transition-colors" {...props} />
                           ),
-                          h1: ({node, ...props}) => <h1 className="text-base font-black text-slate-900 mt-6 mb-3 flex items-center gap-2" {...props} />,
-                          h2: ({node, ...props}) => <h2 className="text-sm font-bold text-slate-800 mt-5 mb-2" {...props} />,
-                          h3: ({node, ...props}) => <h3 className="text-[13px] font-bold text-indigo-600 mt-4 mb-2 uppercase tracking-wide" {...props} />,
+                          h1: ({node, ...props}) => (
+                            <div className="flex items-center gap-3 mt-10 mb-6">
+                              <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+                              <h1 className="text-[18px] font-black text-slate-900 uppercase italic tracking-tighter" {...props} />
+                            </div>
+                          ),
+                          h2: ({node, ...props}) => <h2 className="text-[15px] font-black text-slate-800 mt-8 mb-4 uppercase italic tracking-tight border-b-2 border-slate-100 pb-2" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-[12px] font-black text-indigo-600 mt-6 mb-3 uppercase tracking-[0.3em] italic" {...props} />,
                           p: ({node, ...props}) => <p className="my-2 leading-relaxed text-slate-600" {...props} />,
                           strong: ({node, ...props}) => <strong className="font-bold text-slate-900" {...props} />,
                           hr: ({node, ...props}) => <hr className="my-6 border-slate-100" {...props} />,
