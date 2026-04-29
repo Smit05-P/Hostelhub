@@ -7,14 +7,13 @@ export default function SaaSRoleToggle({ role, setRole, className = "" }) {
 
   return (
     <div className={`relative flex p-1.5 bg-slate-50 rounded-full border border-slate-100 shadow-inner transition-all duration-300 ${className}`}>
-      
+
       {/* Student Tab */}
       <button
         type="button"
         onClick={() => setRole("student")}
-        className={`relative flex-1 flex items-center justify-center gap-3 py-3.5 text-[14px] font-bold transition-all duration-300 rounded-full group ${
-          !isAdmin ? "text-white" : "text-slate-400 hover:text-slate-600"
-        }`}
+        className={`relative flex-1 flex items-center justify-center gap-3 py-3.5 text-[14px] font-bold transition-all duration-300 rounded-full group ${!isAdmin ? "text-white" : "text-slate-400 hover:text-slate-600"
+          }`}
       >
         {!isAdmin && (
           <motion.div
@@ -23,7 +22,7 @@ export default function SaaSRoleToggle({ role, setRole, className = "" }) {
             transition={{ type: "spring", bounce: 0.22, duration: 0.6 }}
           />
         )}
-        <span className="relative z-10 text-[16px] transition-transform group-hover:scale-110">🎓</span>
+        <span className="relative z-10 text-[16px] transition-transform group-hover:scale-110"></span>
         <span className="relative z-10 tracking-tight">Student Access</span>
       </button>
 
@@ -31,9 +30,8 @@ export default function SaaSRoleToggle({ role, setRole, className = "" }) {
       <button
         type="button"
         onClick={() => setRole("admin")}
-        className={`relative flex-1 flex items-center justify-center gap-3 py-3.5 text-[14px] font-bold transition-all duration-300 rounded-full group ${
-          isAdmin ? "text-white" : "text-slate-400 hover:text-slate-600"
-        }`}
+        className={`relative flex-1 flex items-center justify-center gap-3 py-3.5 text-[14px] font-bold transition-all duration-300 rounded-full group ${isAdmin ? "text-white" : "text-slate-400 hover:text-slate-600"
+          }`}
       >
         {isAdmin && (
           <motion.div
@@ -42,7 +40,7 @@ export default function SaaSRoleToggle({ role, setRole, className = "" }) {
             transition={{ type: "spring", bounce: 0.22, duration: 0.6 }}
           />
         )}
-        <span className="relative z-10 text-[16px] transition-transform group-hover:scale-110">🔑</span>
+        <span className="relative z-10 text-[16px] transition-transform group-hover:scale-110"></span>
         <span className="relative z-10 tracking-tight">Admin Control</span>
       </button>
     </div>

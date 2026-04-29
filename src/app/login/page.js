@@ -38,13 +38,13 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-      duration: 0.7, 
-      ease: [0.16, 1, 0.3, 1] 
-    } 
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.16, 1, 0.3, 1]
+    }
   }
 };
 
@@ -53,7 +53,7 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [role, setRole] = useState("student");
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
-  
+
   const router = useRouter();
   const { user, role: currentRole, hostelStatus, loading: authLoading, refreshUser } = useAuth();
 
@@ -165,7 +165,7 @@ export default function LoginPage() {
   return (
     <SaaSAuthLayout>
       <ForceLightMode />
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -186,7 +186,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <motion.div variants={itemVariants}>
-            <SaaSInput 
+            <SaaSInput
               label="Professional Email"
               id="email"
               type="email"
@@ -198,7 +198,7 @@ export default function LoginPage() {
           </motion.div>
 
           <motion.div variants={itemVariants} className="space-y-3">
-            <SaaSInput 
+            <SaaSInput
               label="Secure Password"
               id="password"
               type="password"
@@ -221,13 +221,14 @@ export default function LoginPage() {
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <SaaSButton 
-              type="submit" 
+            <SaaSButton
+              type="submit"
               isLoading={isLoading}
               loadingText="Authenticating..."
               className="mt-6 h-[64px] text-[17px] font-black rounded-full shadow-[0_20px_40px_rgba(79,70,229,0.2)]"
             >
-              Sign In to Dashboard <ArrowRight size={22} strokeWidth={2.5} />
+              Sign In
+              {/* <ArrowRight size={22} strokeWidth={2.5} /> */}
             </SaaSButton>
           </motion.div>
         </form>
@@ -242,8 +243,8 @@ export default function LoginPage() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <SaaSButton 
-            variant="white" 
+          <SaaSButton
+            variant="white"
             onClick={handleGoogleSignIn}
             isLoading={isGoogleLoading}
             loadingText="Redirecting..."
@@ -263,8 +264,8 @@ export default function LoginPage() {
 
         <motion.p variants={itemVariants} className="text-center text-[16px] font-medium text-slate-500 pt-6">
           New to HostelHub?{" "}
-          <Link 
-            href="/register" 
+          <Link
+            href="/register"
             className="text-[#4F46E5] font-black hover:text-[#7C3AED] transition-colors underline decoration-2 underline-offset-8 decoration-indigo-100 hover:decoration-[#4F46E5]"
           >
             Create an account
@@ -272,9 +273,9 @@ export default function LoginPage() {
         </motion.p>
       </motion.div>
 
-      <ForgotPasswordModal 
-        isOpen={isForgotPasswordOpen} 
-        onClose={() => setIsForgotPasswordOpen(false)} 
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
       />
     </SaaSAuthLayout>
   );
