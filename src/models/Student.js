@@ -18,6 +18,11 @@ const StudentSchema = new mongoose.Schema({
     type: String,
     select: false,
   },
+  googleId: {
+    type: String,
+    sparse: true,
+    index: true,
+  },
   authProvider: {
     type: String,
     enum: ['email', 'google'],
@@ -111,8 +116,10 @@ StudentSchema.pre('validate', async function() {
 StudentSchema.pre('save', async function() {
   // Password Hashing
   if (this.isModified('passwordHash') && this.passwordHash) {
-    const salt = await bcrypt.genSalt(10);
-    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    if (typeof this.passwordHash === 'string' && !this.passwordHash.startsWith('$2')) {
+      const salt = await bcrypt.genSalt(10);
+      this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    }
   }
 
   // Lifecycle Calculations

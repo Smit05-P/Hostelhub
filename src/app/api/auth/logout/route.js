@@ -5,3 +5,13 @@ export async function POST() {
   await clearAuthCookie();
   return NextResponse.json({ success: true, message: 'Logged out successfully' });
 }
+
+export async function GET() {
+  await clearAuthCookie();
+  return NextResponse.json({ success: true, message: 'Logged out successfully' });
+}
+
+export async function DELETE() {
+  await clearAuthCookie();
+  return NextResponse.json({ success: true, message: 'Logged out successfully' });
+}

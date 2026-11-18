@@ -13,24 +13,39 @@ const isValidObjectId = (value) => (
 
 /**
  * GET: Retrieves the current merged session from JWT cookie
- * This is the high-fidelity source of truth for the local AuthContext hydration.
+ * High-fidelity source of truth for AuthContext hydration
  */
 export async function GET() {
   try {
     const session = await getSession();
 
     if (!session) {
-      console.log('[SESSION] No session found in cookie');
-      return NextResponse.json({ authenticated: false }, { status: 200 });
+      // Clear any expired or malformed cookie
+      await clearAuthCookie();
+      return NextResponse.json({ authenticated: false }, { 
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+      });
     }
 
     if (!isValidObjectId(session.userId)) {
       console.warn('[SESSION] Invalid session userId detected:', session.userId);
       await clearAuthCookie();
-      return NextResponse.json({ authenticated: false }, { status: 200 });
+      return NextResponse.json({ authenticated: false }, { 
+        status: 200,
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+      });
     }
 
-    await dbConnect();
+    try {
+      await dbConnect();
+    } catch (dbErr) {
+      console.error('[SESSION DB Error]:', dbErr.message);
+      return NextResponse.json({ 
+        authenticated: false, 
+        error: 'Database connection failed' 
+      }, { status: 503 });
+    }
 
     let userData = null;
     let activeHostelData = null;
@@ -52,33 +67,35 @@ export async function GET() {
       if (student) {
         // --- SELF-HEALING LOGIC ---
         // Cross-reference the student record with the latest JoinRequest.
-        // Fixes cases where the student record was not updated during admin approval.
-        const latestRequest = await JoinRequest.findOne({
-          $or: [
-            { userId: session.userId },
-            { userId: new mongoose.Types.ObjectId(session.userId) },
-            { userEmail: student.email }
-          ]
-        }).sort({ updatedAt: -1, createdAt: -1 });
+        try {
+          const latestRequest = await JoinRequest.findOne({
+            $or: [
+              { userId: session.userId },
+              { userId: new mongoose.Types.ObjectId(session.userId) },
+              { userEmail: student.email }
+            ]
+          }).sort({ updatedAt: -1, createdAt: -1 });
 
-        if (latestRequest && student.hostelStatus !== 'Approved') {
-          const requestStatus = latestRequest.status;
-          const studentStatus = student.hostelStatus;
+          if (latestRequest && student.hostelStatus !== 'Approved') {
+            const requestStatus = latestRequest.status;
+            const studentStatus = student.hostelStatus;
 
-          if (requestStatus !== studentStatus) {
-            console.log(`[SESSION-REPAIR] Syncing status for ${student.email}: ${studentStatus} -> ${requestStatus}`);
-            student.hostelStatus = requestStatus;
+            if (requestStatus !== studentStatus) {
+              console.log(`[SESSION-REPAIR] Syncing status for ${student.email}: ${studentStatus} -> ${requestStatus}`);
+              student.hostelStatus = requestStatus;
 
-            if (requestStatus === 'Approved' && latestRequest.hostelId) {
-              student.hostelId = latestRequest.hostelId;
-              student.status = 'Active';
-              console.log(`[SESSION-REPAIR] hostelId set to: ${latestRequest.hostelId}`);
-            } else if (requestStatus === 'Rejected') {
-              student.hostelId = null;
-              student.status = 'Inactive';
+              if (requestStatus === 'Approved' && latestRequest.hostelId) {
+                student.hostelId = latestRequest.hostelId;
+                student.status = 'Active';
+              } else if (requestStatus === 'Rejected') {
+                student.hostelId = null;
+                student.status = 'Inactive';
+              }
+              await student.save();
             }
-            await student.save();
           }
+        } catch (repairErr) {
+          console.warn('[SESSION-REPAIR] JoinRequest check warning:', repairErr.message);
         }
         
         userData = student.toObject();
@@ -91,20 +108,16 @@ export async function GET() {
       return NextResponse.json({ authenticated: false }, { status: 200 });
     }
 
-    console.log('[SESSION] User data retrieved:', { 
-      role: session.role, 
-      hostelId: userData.hostelId?.toString?.(), 
-      hostelStatus: userData.hostelStatus 
-    });
-
     const hostelIdValue = session.hostelId || userData.hostelId?.toString?.() || userData.hostelId || null;
 
     if (hostelIdValue && isValidObjectId(hostelIdValue)) {
-      activeHostelData = await Hostel.findById(hostelIdValue)
-        .select('name address phone email capacity joinCode status autoApprove settings ownerId createdAt')
-        .lean();
-    } else if (hostelIdValue) {
-      console.warn('Invalid session hostelId detected:', hostelIdValue);
+      try {
+        activeHostelData = await Hostel.findById(hostelIdValue)
+          .select('name address phone email capacity joinCode status autoApprove settings ownerId createdAt')
+          .lean();
+      } catch (hostelErr) {
+        console.warn('[SESSION] Hostel lookup warning:', hostelErr.message);
+      }
     }
 
     return NextResponse.json({
@@ -127,7 +140,6 @@ export async function GET() {
         profileImage: userData.profileImage || null,
         status: userData.status || null,
         hostelStatus: userData.hostelStatus || null,
-        // Full profile fields so refreshUser() correctly restores all form data
         phone: userData.phone || null,
         address: userData.address || null,
         emergencyContact: userData.emergencyContact || null,
@@ -159,9 +171,9 @@ export async function GET() {
 }
 
 /**
- * DELETE: Standard Logout
+ * DELETE: Standard Logout via session endpoint
  */
 export async function DELETE() {
   await clearAuthCookie();
-  return NextResponse.json({ success: true, message: 'Logged out' });
+  return NextResponse.json({ success: true, message: 'Logged out successfully' });
 }

@@ -125,22 +125,24 @@ export default function RegisterPage() {
   // Google Identity Services callback
   const handleGoogleCredential = useCallback(async (tokenResponse) => {
     if (tokenResponse.error) {
-      console.error("Google Auth Error:", tokenResponse.error);
-      toast.error("Google Sign-In was cancelled or failed.");
+      console.error("[Google Auth Error]:", tokenResponse);
+      setIsGoogleLoading(false);
+      if (tokenResponse.error === "origin_mismatch" || tokenResponse.error_description?.includes?.("origin")) {
+        toast.error(
+          `Google OAuth Error: origin_mismatch. Current origin (${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}) is not authorized in Google Cloud Console.`,
+          { duration: 8000 }
+        );
+      } else {
+        toast.error(`Google Sign-In failed: ${tokenResponse.error_description || tokenResponse.error}`);
+      }
       return;
     }
 
     setIsGoogleLoading(true);
     try {
-      // Fetch user profile using the access token
-      const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-      });
-
-      const { sub: uid, email, name, picture: photoURL } = userInfoResponse.data;
-
+      // Send token to backend for independent server-side verification
       const response = await axios.post("/api/auth/google", {
-        uid, email, name, photoURL,
+        accessToken: tokenResponse.access_token,
         role: role,
       });
 
@@ -148,13 +150,11 @@ export default function RegisterPage() {
         await refreshUser();
         toast.success("Signed in with Google.");
         router.replace(role === "admin" ? "/admin/hostels" : "/student/dashboard");
-      } else if (response.data.needsRole) {
-        setGoogleUser({ uid, email, displayName: name, photoURL });
-        setIsRoleModalOpen(true);
       }
     } catch (error) {
-      console.error("Google Auth Error:", error);
-      toast.error("Google Sign-In failed.");
+      console.error("[Google Auth Error]:", error);
+      const message = error.response?.data?.error || "Google Sign-In failed.";
+      toast.error(message);
     } finally {
       setIsGoogleLoading(false);
     }
@@ -173,12 +173,28 @@ export default function RegisterPage() {
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      if (window.google?.accounts?.oauth2) {
-        window.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
-          client_id: clientId,
-          scope: 'email profile openid',
-          callback: handleGoogleCredential,
-        });
+      try {
+        if (window.google?.accounts?.oauth2) {
+          window.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: 'email profile openid',
+            callback: handleGoogleCredential,
+            error_callback: (err) => {
+              console.error("[GIS Error Callback]:", err);
+              setIsGoogleLoading(false);
+              if (err?.type === 'origin_mismatch' || err?.message?.includes?.('origin')) {
+                toast.error(
+                  `Google OAuth Error: origin_mismatch. Add ${window.location.origin} to Google Cloud Console Authorized JavaScript origins.`,
+                  { duration: 8000 }
+                );
+              } else {
+                toast.error(`Google OAuth Error: ${err?.message || err?.type || 'Failed'}`);
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Failed to initialize Google client:", e);
       }
     };
     document.head.appendChild(script);
@@ -188,22 +204,33 @@ export default function RegisterPage() {
   }, [handleGoogleCredential]);
 
   const handleGoogleSignIn = () => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      toast.error("Google Client ID is not configured in environment variables.");
+      return;
+    }
+
     if (window.googleTokenClient) {
-      window.googleTokenClient.requestAccessToken();
+      setIsGoogleLoading(true);
+      try {
+        window.googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+      } catch (err) {
+        console.warn("Popup blocked or failed, falling back to redirect flow:", err);
+        window.location.href = `/api/auth/google?role=${role}`;
+      }
     } else {
-      toast.error("Google Sign-In is not initialized. Please configure your Client ID.");
+      // Fallback to redirect-based OAuth
+      setIsGoogleLoading(true);
+      window.location.href = `/api/auth/google?role=${role}`;
     }
   };
 
   const handleRoleSelect = async (selectedRole) => {
-    if (!googleUser) return;
+    if (!googleUser || !googleUser.accessToken) return;
     setIsGoogleLoading(true);
     try {
       await axios.post("/api/auth/google", {
-        uid: googleUser.uid,
-        email: googleUser.email,
-        name: googleUser.displayName,
-        photoURL: googleUser.photoURL,
+        accessToken: googleUser.accessToken,
         role: selectedRole,
       });
 
@@ -213,7 +240,7 @@ export default function RegisterPage() {
       router.replace(selectedRole === "admin" ? "/admin/hostels" : "/student/select-hostel");
     } catch (err) {
       console.error("Google Onboarding Error:", err);
-      toast.error("Failed to complete profile.");
+      toast.error(err.response?.data?.error || "Failed to complete profile.");
     } finally {
       setIsGoogleLoading(false);
     }
