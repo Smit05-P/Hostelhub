@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
-import LandingPage from "@/components/landing/LandingPage";
+import LandingPage from "@/components/landing/PremiumLandingPage";
 import ForceLightMode from "@/components/ForceLightMode";
 
 export default function Home() {

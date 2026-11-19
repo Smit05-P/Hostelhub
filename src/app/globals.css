@@ -367,3 +367,148 @@ body {
   padding-left: 1rem;
   padding-right: 1rem;
 }
+
+/* Premium HostelHub landing page */
+.nav-link {
+  color: #68756d;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: color 160ms ease;
+}
+
+.nav-link:hover {
+  color: #26382d;
+}
+
+.nav-link:focus-visible,
+.button:focus-visible,
+.form-input:focus-visible {
+  outline: 2px solid #55745d;
+  outline-offset: 3px;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  padding: 0.75rem 1.375rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.button-dark {
+  background: #20352a;
+  color: #fff;
+  box-shadow: 0 8px 20px -12px rgb(32 53 42 / 0.65);
+}
+
+.button-dark:hover:not(:disabled) {
+  background: #314b39;
+  box-shadow: 0 12px 24px -14px rgb(32 53 42 / 0.75);
+}
+
+.button-light {
+  border-color: #e2e4dc;
+  background: #fff;
+  color: #33453a;
+}
+
+.button-light:hover:not(:disabled) {
+  border-color: #cbd6c9;
+  background: #f7faf6;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  border: 1px solid #dfe7dc;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.72);
+  padding: 0.5rem 0.875rem;
+  color: #587260;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section-kicker {
+  color: #66806a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.section-title {
+  max-width: 48rem;
+  color: #1e3026;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+
+.section-copy {
+  max-width: 42rem;
+  color: #748077;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.form-input {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid #dedfd8;
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0.75rem 0.875rem;
+  color: #25372d;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.form-input::placeholder {
+  color: #a0a8a0;
+}
+
+.form-input:focus {
+  border-color: #78927a;
+  box-shadow: 0 0 0 3px rgb(85 116 93 / 0.13);
+  outline: none;
+}
+
+.form-input[aria-invalid="true"] {
+  border-color: #b42318;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .nav-link,
+  .form-input {
+    transition: none;
+  }
+}

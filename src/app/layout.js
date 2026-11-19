@@ -21,15 +21,20 @@ import ClientToaster from "@/components/ClientToaster";
 import GestureLock from "@/components/GestureLock";
 
 export const metadata = {
-  title: "HostelHub - Advanced Hostel Management",
-  description: "Next-generation hostel management system for modern campuses.",
+  title: "HostelHub | Thoughtful hostel management",
+  description:
+    "Explore HostelHub, a hostel operations platform for managing rooms, residents, payments, and day-to-day requests. Now in beta.",
+  openGraph: {
+    title: "HostelHub | Thoughtful hostel management",
+    description:
+      "A clearer way to manage hostel rooms, residents, payments, and day-to-day requests.",
+    type: "website",
+  },
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default function RootLayout({ children }) {
