@@ -13,7 +13,6 @@ import ForceLightMode from "../ForceLightMode";
 // Dynamic imports for below-the-fold components
 const StatsSection = dynamic(() => import("./StatsSection"), { ssr: true });
 const Testimonials = dynamic(() => import("./Testimonials"), { ssr: true });
-const Pricing = dynamic(() => import("./Pricing"), { ssr: true });
 const CTASection = dynamic(() => import("./CTASection"), { ssr: true });
 const Footer = dynamic(() => import("./Footer"), { ssr: true });
 
@@ -51,7 +50,6 @@ export default function LandingPage() {
         <DashboardPreview />
         <StatsSection />
         <Testimonials />
-        <Pricing />
         <div id="demo">
           <CTASection />
         </div>

@@ -18,7 +18,7 @@ export default function Footer() {
   const footerLinks = [
     {
       title: "Product",
-      links: ["Features", "Dashboard", "Mobile App", "Pricing", "Integrations"]
+      links: ["Features", "Dashboard", "Mobile App", "Integrations"]
     },
     {
       title: "Company",

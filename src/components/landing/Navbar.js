@@ -2,13 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Menu, X, ArrowRight } from "lucide-react";
-import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
-  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -33,24 +30,9 @@ export default function Navbar() {
     };
   }, [mobileMenuOpen]);
 
-  const handleSignIn = async () => {
-    try {
-      // Clear any existing session
-      console.log("[NAVBAR] Clearing session and redirecting to login");
-      await axios.delete('/api/auth/session');
-    } catch (e) {
-      console.log("[NAVBAR] Session clear error (non-fatal):", e.message);
-    }
-
-    // Use window.location for hard redirect to ensure clean auth state
-    // This forces full page reload and clears all client-side cache
-    window.location.href = '/login';
-  };
-
   const navLinks = [
     { name: "Features", href: "#features", priority: 1 },
     { name: "Modules", href: "#modules", priority: 1 },
-    { name: "Pricing", href: "#pricing", priority: 1 },
     { name: "About", href: "#about", priority: 2 },
   ];
 
@@ -91,12 +73,12 @@ export default function Navbar() {
           {/* Right Side */}
           <div className="flex items-center gap-2 md:gap-4">
             <div className="hidden lg:flex items-center gap-4">
-              <button
-                onClick={handleSignIn}
+              <Link
+                href="/login"
                 className="text-[15px] text-slate-600 hover:text-[#6366f1] transition-all font-semibold h-[44px] flex items-center px-4 hover:-translate-y-0.5 bg-transparent border-none cursor-pointer"
               >
                 Sign In
-              </button>
+              </Link>
               <Link
                 href="/register"
                 className="h-[44px] flex items-center justify-center px-6 rounded-full text-[15px] font-extrabold text-white bg-slate-900 hover:bg-slate-800 shadow-lg shadow-slate-900/5 hover:translate-y-[-2px] active:scale-[0.98] transition-all"
@@ -166,15 +148,13 @@ export default function Navbar() {
                 </div>
 
                 <div className="flex flex-col gap-4 mt-4">
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      handleSignIn();
-                    }}
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
                     className="w-full h-[64px] flex items-center justify-center rounded-2xl text-[18px] font-bold text-slate-700 bg-white border border-slate-100 shadow-sm hover:bg-slate-50 transition-all"
                   >
                     Sign In to Account
-                  </button>
+                  </Link>
                   <Link
                     href="/register"
                     onClick={() => setMobileMenuOpen(false)}

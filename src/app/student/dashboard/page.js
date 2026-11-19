@@ -14,6 +14,7 @@ import dynamic from "next/dynamic";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
 import { useAuth } from "@/contexts/AuthContext";
 import { SkeletonCard, SkeletonHero, Shimmer } from "@/components/ui/Skeleton";
+import IntelInsightCard from "@/components/intel/IntelInsightCard";
 
 const CONTAINER_VARIANTS = {
   hidden: { opacity: 0 },
@@ -483,6 +484,8 @@ export default function StudentDashboardPage() {
               ACCESS IDENTITY <UserCheck size={14} className="fill-white" />
             </Link>
           </motion.div>
+
+          <IntelInsightCard hostelId={user?.hostelId} role="student" />
 
           <div className="grid grid-cols-1 gap-6">
             <QuickAction label="Settle Ledger" href="/student/payments" icon={CreditCard} color="bg-indigo-600/10 text-indigo-700" />

@@ -21,20 +21,15 @@ import ClientToaster from "@/components/ClientToaster";
 import GestureLock from "@/components/GestureLock";
 
 export const metadata = {
-  title: "HostelHub | Thoughtful hostel management",
-  description:
-    "Explore HostelHub, a hostel operations platform for managing rooms, residents, payments, and day-to-day requests. Now in beta.",
-  openGraph: {
-    title: "HostelHub | Thoughtful hostel management",
-    description:
-      "A clearer way to manage hostel rooms, residents, payments, and day-to-day requests.",
-    type: "website",
-  },
+  title: "HostelHub - Advanced Hostel Management",
+  description: "Next-generation hostel management system for modern campuses.",
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }) {
@@ -53,6 +48,13 @@ export default function RootLayout({ children }) {
                 <NotificationProvider>
                   <GestureLock />
                   {children}
+                  <div
+                    className="beta-badge fixed bottom-5 right-5 z-[1000] rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-extrabold tracking-[0.16em] text-indigo-600 shadow-sm"
+                    role="status"
+                    aria-label="Beta"
+                  >
+                    BETA
+                  </div>
                   <ClientToaster />
                 </NotificationProvider>
               </ToastProvider>
