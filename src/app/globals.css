@@ -367,3 +367,55 @@ body {
   padding-left: 1rem;
   padding-right: 1rem;
 }
+
+.beta-badge {
+  position: fixed;
+  isolation: isolate;
+  animation: beta-badge-breathe 2.4s ease-in-out infinite;
+}
+
+.beta-badge::before,
+.beta-badge::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  border-radius: 10px;
+  pointer-events: none;
+  animation: beta-badge-pulse 2.4s ease-out infinite;
+}
+
+.beta-badge::after {
+  animation-delay: 1.2s;
+}
+
+@keyframes beta-badge-breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.12);
+  }
+  50% {
+    transform: scale(1.07);
+    box-shadow: 0 7px 22px rgba(99, 102, 241, 0.28);
+  }
+}
+
+@keyframes beta-badge-pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.82);
+  }
+  75%, 100% {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beta-badge,
+  .beta-badge::before,
+  .beta-badge::after {
+    animation: none;
+  }
+}

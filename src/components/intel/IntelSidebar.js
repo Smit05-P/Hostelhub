@@ -3,23 +3,19 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  X, Send, Sparkles, Loader2, Bot, User, 
-  MessageSquare, Terminal, Zap, Info, Download, FileText, Copy
+  X, Send, Sparkles, Loader2, Bot, User, Zap, Info, Download, FileText, File as FileIcon, Copy, AlertCircle
 } from "lucide-react";
-import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
 
 export default function IntelSidebar({ isOpen, onClose }) {
   const { activeHostelId, role } = useAuth();
   const [messages, setMessages] = useState([
     { 
       role: "model", 
-      content: `Hello! I'm HostelHub Intel. I have real-time access to this hostel's data. How can I assist you ${role === 'admin' ? 'with management today' : 'with your stay'}?` 
+      content: `Hello! I'm HostelHub Intel. I can answer questions using the hostel data available to your account. How can I assist you ${role === "admin" ? "with management today" : "with your stay"}?`
     }
   ]);
   const [input, setInput] = useState("");
@@ -54,31 +50,32 @@ export default function IntelSidebar({ isOpen, onClose }) {
         })
       });
 
+      const result = await response.json().catch(() => null);
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to connect to Intel Node.");
+        throw new Error(result?.error?.message || `Intel request failed (HTTP ${response.status}).`);
+      }
+      if (!result?.success) {
+        throw new Error(result?.error?.message || "Intel could not generate an answer.");
+      }
+      if (typeof result.answer !== "string" || !result.answer.trim()) {
+        throw new Error("Intel received an empty answer. Please try again or contact your administrator.");
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedContent = "";
+      const sections = [
+        result.summary && `### Summary\n${result.summary}`,
+        result.answer && `### Answer\n${result.answer}`,
+        result.keyInsights?.length && `### Key insights\n${result.keyInsights.map((item) => `- ${item}`).join("\n")}`,
+        result.recommendations?.length && `### Recommendations\n${result.recommendations.map((item) => `- ${item}`).join("\n")}`,
+      ].filter(Boolean);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        accumulatedContent += chunk;
-
-        setMessages(prev => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1] = { 
-            role: "model", 
-            content: accumulatedContent 
-          };
-          return newMessages;
-        });
-      }
+      setMessages(prev => {
+        const newMessages = [...prev];
+        newMessages[newMessages.length - 1] = {
+          role: "model",
+          content: sections.join("\n\n"),
+        };
+        return newMessages;
+      });
     } catch (err) {
       const errorMsg = err.message || "Connection to Intel Node failed.";
       toast.error(errorMsg);
@@ -86,7 +83,8 @@ export default function IntelSidebar({ isOpen, onClose }) {
         const newMessages = [...prev];
         newMessages[newMessages.length - 1] = { 
           role: "model", 
-          content: `Error: ${errorMsg}. Please try again later.` 
+          content: errorMsg,
+          error: true,
         };
         return newMessages;
       });
@@ -108,170 +106,84 @@ export default function IntelSidebar({ isOpen, onClose }) {
     toast.success("Download started");
   };
 
+  const downloadDOCX = async (content, filename, title) => {
+    try {
+      const { createIntelReportDocxBlob } = await import("@/lib/intel-docx");
+      const blob = await createIntelReportDocxBlob(content, title);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success("Word report downloaded");
+    } catch (error) {
+      console.error("[Intel] Word report export failed:", error);
+      toast.error("The Word report could not be created. Please try again.");
+    }
+  };
+
   const downloadEntireChat = () => {
     const content = messages.map(m => `### ${m.role === 'user' ? 'USER' : 'INTEL'}\n\n${m.content}\n\n---\n`).join("\n");
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
     downloadMessage(content, `hostelhub-intel-chat-${timestamp}.md`);
   };
 
-  const downloadPDF = (content, title = "Intel Intelligence Report") => {
-    const doc = new jsPDF();
-    const timestamp = new Date().toLocaleString();
-    
-    // Header
-    doc.setFillColor(79, 70, 229); // Indigo-600
-    doc.rect(0, 0, 210, 40, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text("HOSTELHUB INTEL", 20, 20);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Generated on: ${timestamp}`, 20, 30);
-    doc.text(`Subject: ${title}`, 20, 35);
-
-    let cursorY = 50;
-    doc.setTextColor(30, 41, 59); // Slate-800
-    
-    // Split content into blocks of text and tables
-    const lines = content.split('\n');
-    let tableLines = [];
-    let isTable = false;
-
-    const flushTable = () => {
-      if (tableLines.length < 2) return;
-      
-      const headers = tableLines[0].split('|').filter(cell => cell.trim() !== '').map(cell => cell.trim());
-      const rows = tableLines.slice(2).map(line => 
-        line.split('|').filter((_, index, array) => index > 0 && index < array.length - 1).map(cell => cell.trim())
-      );
-
-      autoTable(doc, {
-        startY: cursorY,
-        head: [headers],
-        body: rows,
-        margin: { left: 20, right: 20 },
-        styles: { fontSize: 9, font: "helvetica" },
-        headStyles: { fillStyle: 'F', fillColor: [79, 70, 229], textColor: 255 },
-        alternateRowStyles: { fillColor: [248, 250, 252] },
-        didDrawPage: (data) => {
-          cursorY = data.cursor.y;
-        }
-      });
-      
-      cursorY = (doc.lastAutoTable?.finalY || cursorY) + 10;
-      tableLines = [];
-      isTable = false;
-    };
-
-    const sanitizeText = (text) => {
-      if (!text) return "";
-      return text
-        .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F1E0}-\u{1F1FF}]/gu, '') // Remove emojis
-        .replace(/\*\*/g, "") // Remove bold markdown
-        .replace(/###/g, "") // Remove header markdown
-        .replace(/^>\s?/gm, "") // Remove blockquote markdown
-        .replace(/₹/g, "Rs.") // Replace Rupee with Rs. (more compatible)
-        .replace(/[\u2018\u2019]/g, "'") // Smart quotes
-        .replace(/[\u201C\u201D]/g, '"') // Smart quotes
-        .replace(/\u2013/g, "-") // En dash
-        .replace(/\u2014/g, "--") // Em dash
-        .replace(/[^\x00-\x7F]/g, "") // Strip any other non-ASCII characters to prevent garbled PDF
-        .trim();
-    };
-
-    const renderText = (text, x, y, maxWidth, isBold = false) => {
-      doc.setFont("helvetica", isBold ? "bold" : "normal");
-      const cleanText = sanitizeText(text);
-      if (!cleanText) return y;
-      const splitLines = doc.splitTextToSize(cleanText, maxWidth);
-      splitLines.forEach(l => {
-        if (y > 275) { doc.addPage(); y = 25; }
-        doc.text(l, x, y);
-        y += 7;
-      });
-      return y;
-    };
-
-    lines.forEach((line, index) => {
-      const trimmed = line.trim();
-      
-      // Detect Role Headers
-      if (trimmed.startsWith('[USER]') || trimmed.startsWith('[INTEL]')) {
-        if (cursorY > 260) { doc.addPage(); cursorY = 25; }
-        doc.setFillColor(trimmed.includes('INTEL') ? 240 : 248, 242, 255);
-        doc.rect(20, cursorY - 5, 170, 8, 'F');
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(trimmed.includes('INTEL') ? 79 : 100, 70, 229);
-        doc.text(sanitizeText(trimmed), 25, cursorY);
-        cursorY += 12;
-        return;
-      }
-
-      const isTableLine = trimmed.startsWith('|') && trimmed.endsWith('|');
-
-      if (isTableLine) {
-        isTable = true;
-        tableLines.push(line);
-      } else {
-        if (isTable) {
-          // Flush Table with Sanitzation
-          if (tableLines.length >= 2) {
-            const headers = tableLines[0].split('|').filter(cell => cell.trim() !== '').map(cell => sanitizeText(cell));
-            const rows = tableLines.slice(2).map(line => 
-              line.split('|').filter((_, index, array) => index > 0 && index < array.length - 1).map(cell => sanitizeText(cell))
-            );
-
-            autoTable(doc, {
-              startY: cursorY,
-              head: [headers],
-              body: rows,
-              margin: { left: 20, right: 20 },
-              styles: { fontSize: 9, font: "helvetica" },
-              headStyles: { fillStyle: 'F', fillColor: [79, 70, 229], textColor: 255 },
-              alternateRowStyles: { fillColor: [248, 250, 252] },
-              didDrawPage: (data) => {
-                cursorY = data.cursor.y;
-              }
-            });
-            cursorY = (doc.lastAutoTable?.finalY || cursorY) + 10;
-          }
-          tableLines = [];
-          isTable = false;
-        }
-
-        if (trimmed !== '') {
-          doc.setFontSize(11);
-          doc.setTextColor(30, 41, 59);
-          const isHeader = trimmed.startsWith('###') || trimmed.startsWith('**');
-          cursorY = renderText(trimmed, 20, cursorY, 170, isHeader);
-        } else {
-          cursorY += 4;
-        }
-      }
-
-      if (index === lines.length - 1 && isTable) {
-         // Final table flush logic same as above
-      }
-    });
-
-    // Footer
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text(`Page ${i} of ${pageCount} | Official HostelHub Intelligence Report | ${new Date().toLocaleDateString()}`, 105, 290, { align: "center" });
+  const downloadPDF = async (content, title = "Intel Intelligence Report") => {
+    try {
+      const { createIntelReportPdf } = await import("@/lib/intel-pdf");
+      const doc = createIntelReportPdf(content, title);
+      doc.save(`intel-report-${Date.now()}.pdf`);
+      toast.success("Intel report PDF downloaded");
+    } catch (error) {
+      console.error("[Intel] PDF report export failed:", error);
+      toast.error("The PDF report could not be created. Please try again.");
     }
-
-    doc.save(`intel-report-${new Date().getTime()}.pdf`);
-    toast.success("Premium PDF Exported");
   };
 
-  const downloadEntireChatPDF = () => {
-    const content = messages.map(m => `[${m.role === 'user' ? 'USER' : 'INTEL'}]\n${m.content}\n\n------------------\n`).join("\n");
-    downloadPDF(content, "Full Conversation Logs");
+  const downloadAllReportsPDF = () => {
+    const reports = messages.filter((message, index) =>
+      index > 0
+      && message.role === "model"
+      && !message.error
+      && message.content?.trim()
+    );
+
+    if (reports.length === 0) {
+      toast.error("There are no Intel reports to download yet.");
+      return;
+    }
+
+    const content = reports
+      .map((report, index) => `# Report ${index + 1}\n\n${report.content}`)
+      .join("\n\n---\n\n");
+    downloadPDF(content, `All Intel Reports (${reports.length})`);
+  };
+
+  const downloadAllReportsDOCX = () => {
+    const reports = messages.filter((message, index) =>
+      index > 0
+      && message.role === "model"
+      && !message.error
+      && message.content?.trim()
+    );
+
+    if (reports.length === 0) {
+      toast.error("There are no Intel reports to download yet.");
+      return;
+    }
+
+    const content = reports
+      .map((report, index) => `# Report ${index + 1}\n\n${report.content}`)
+      .join("\n\n---\n\n");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    downloadDOCX(
+      content,
+      `hostelhub-intel-reports-${timestamp}.docx`,
+      `All Intel Reports (${reports.length})`
+    );
   };
 
   return (
@@ -296,35 +208,45 @@ export default function IntelSidebar({ isOpen, onClose }) {
             className="fixed inset-y-0 right-0 z-[70] w-full max-w-md intel-glass border-l border-white/10 flex flex-col shadow-2xl"
           >
             {/* Header */}
-            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-600/20">
                   <Sparkles size={20} className="text-white fill-white" />
                 </div>
-                <div>
-                  <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none">HostelHub Intel</h2>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold leading-tight tracking-wide text-slate-900 sm:text-base">HostelHub Intel</h2>
                   <div className="flex items-center gap-1.5 mt-1.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Intelligence Node</span>
+                    <span className="truncate text-[10px] font-semibold tracking-wide text-slate-500">Hostel data assistant</span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-1 sm:gap-2">
                 <button 
-                  onClick={downloadEntireChatPDF}
-                  title="Download Chat as PDF"
-                  className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-rose-600"
+                  onClick={downloadAllReportsPDF}
+                  title="Download all Intel reports as PDF"
+                  aria-label="Download all Intel reports as PDF"
+                  className="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-rose-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
                 >
                   <FileText size={20} />
+                </button>
+                <button
+                  onClick={downloadAllReportsDOCX}
+                  title="Download all Intel reports as Word"
+                  aria-label="Download all Intel reports as Word"
+                  className="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
+                >
+                  <FileIcon size={20} />
                 </button>
                 <button 
                   onClick={downloadEntireChat}
                   title="Download Chat as Markdown"
-                  className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-indigo-600"
+                  aria-label="Download conversation as Markdown"
+                  className="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
                 >
                   <Download size={20} />
                 </button>
-                <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400">
+                <button onClick={onClose} aria-label="Close HostelHub Intel" className="rounded-xl p-2 text-slate-500 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">
                   <X size={20} />
                 </button>
               </div>
@@ -333,91 +255,117 @@ export default function IntelSidebar({ isOpen, onClose }) {
             {/* Chat Area */}
             <div 
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide bg-slate-50/30"
+              className="flex-1 space-y-5 overflow-y-auto bg-slate-50/70 p-4 sm:p-6 scrollbar-hide"
             >
-              <div className="bg-blue-600/5 border border-blue-100 rounded-2xl p-4 flex gap-3 text-[11px] font-medium text-blue-800 leading-relaxed shadow-sm">
-                <Info size={16} className="shrink-0 text-blue-600" />
-                <span>Intel can access your real-time dashboard data to generate summaries, analyze trends, and answer operational questions instantly.</span>
+              <div className="flex gap-3 rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs leading-relaxed text-blue-900">
+                <Info size={16} className="shrink-0 text-blue-700" />
+                <span>Ask general questions or about authorized hostel records. Use the PDF or Word icons above to export all successful reports from this chat.</span>
               </div>
 
               {messages.map((m, i) => (
-                <div key={i} className={`flex items-start gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-md ${
-                    m.role === 'user' ? 'bg-slate-900 text-white' : 'bg-white border border-slate-100 text-indigo-600'
+                <div key={i} className={`flex min-w-0 items-start gap-2.5 sm:gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                    m.role === "user" ? "bg-slate-900 text-white" : "border border-slate-200 bg-white text-indigo-700"
                   }`}>
                     {m.role === 'user' ? <User size={14} /> : <Bot size={14} />}
                   </div>
-                  <div className={`relative group max-w-[85%] p-4 rounded-2xl text-[13px] leading-relaxed shadow-sm ${
-                    m.role === 'user' 
-                      ? 'bg-indigo-600 text-white rounded-tr-none' 
-                      : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none'
+                  <div className={`min-w-0 max-w-[88%] rounded-2xl px-4 py-3.5 text-[14px] leading-6 shadow-sm sm:px-5 ${
+                    m.role === "user"
+                      ? "rounded-tr-md bg-indigo-700 text-white"
+                      : m.error
+                        ? "rounded-tl-md border border-rose-200 bg-rose-50 text-rose-900"
+                        : "rounded-tl-md border border-slate-200 bg-white text-slate-800"
                   }`}>
-                    {/* Message Action Bar */}
-                    {m.role === 'model' && (
-                      <div className="absolute -right-12 top-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    {m.role === "user" ? (
+                      <p className="whitespace-pre-wrap break-words font-medium text-white">{m.content}</p>
+                    ) : m.error ? (
+                      <div className="flex items-start gap-2.5" role="alert">
+                        <AlertCircle size={18} className="mt-1 shrink-0 text-rose-700" />
+                        <p className="break-words text-[14px] leading-6 text-rose-900">{m.content}</p>
+                      </div>
+                    ) : (
+                      <>
+                      <div className="mb-3 flex items-center justify-end gap-1 border-b border-slate-100 pb-2">
                         <button 
                           onClick={() => {
                             navigator.clipboard.writeText(m.content);
                             toast.success("Copied to clipboard");
                           }}
-                          className="p-2 text-slate-300 hover:text-indigo-600 transition-colors"
-                          title="Copy Content"
+                          className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
+                          title="Copy response"
+                          aria-label="Copy response"
                         >
-                          <Copy size={16} />
+                          <Copy size={15} />
                         </button>
                         <button 
                           onClick={() => downloadPDF(m.content, "AI Response Detail")}
-                          className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
-                          title="Download as PDF"
+                          className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-rose-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
+                          title="Download response as PDF"
+                          aria-label="Download response as PDF"
                         >
-                          <FileText size={16} />
+                          <FileText size={15} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+                            downloadDOCX(
+                              m.content,
+                              `hostelhub-intel-report-${timestamp}.docx`,
+                              "Intel Report"
+                            );
+                          }}
+                          className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
+                          title="Download response as Word"
+                          aria-label="Download response as Word"
+                        >
+                          <FileIcon size={15} />
                         </button>
                         <button 
                           onClick={() => downloadMessage(m.content)}
-                          className="p-2 text-slate-300 hover:text-emerald-500 transition-colors"
-                          title="Download as Markdown"
+                          className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"
+                          title="Download response as Markdown"
+                          aria-label="Download response as Markdown"
                         >
-                          <Download size={16} />
+                          <Download size={15} />
                         </button>
                       </div>
+                      <div className="min-w-0 max-w-full text-[14px] leading-7 text-slate-700">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            table: ({ node, ...props }) => (
+                              <div className="my-4 max-w-full overflow-x-auto rounded-xl border border-slate-200">
+                                <table className="w-full min-w-[420px] border-collapse text-left text-[13px]" {...props} />
+                              </div>
+                            ),
+                            th: ({ node, ...props }) => (
+                              <th className="border-b border-slate-200 bg-indigo-50 px-3 py-2.5 text-left text-xs font-bold text-indigo-950" {...props} />
+                            ),
+                            td: ({ node, ...props }) => (
+                              <td className="border-b border-slate-100 px-3 py-2.5 align-top text-[13px] leading-5 text-slate-700" {...props} />
+                            ),
+                            h1: ({ node, ...props }) => <h1 className="mb-3 mt-5 text-lg font-bold leading-snug text-slate-950 first:mt-0" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="mb-2 mt-5 border-b border-slate-200 pb-2 text-base font-bold text-slate-900" {...props} />,
+                            h3: ({ node, ...props }) => <h3 className="mb-2 mt-4 text-sm font-bold text-indigo-800" {...props} />,
+                            p: ({ node, ...props }) => <p className="my-2 break-words text-[14px] leading-7 text-slate-700" {...props} />,
+                            strong: ({ node, ...props }) => <strong className="font-bold text-slate-950" {...props} />,
+                            hr: ({ node, ...props }) => <hr className="my-4 border-slate-200" {...props} />,
+                            ul: ({ node, ...props }) => <ul className="my-3 list-disc space-y-1 pl-5 text-[14px] leading-6 text-slate-700" {...props} />,
+                            ol: ({ node, ...props }) => <ol className="my-3 list-decimal space-y-1 pl-5 text-[14px] leading-6 text-slate-700" {...props} />,
+                            li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                            code: ({ node, className, children, ...props }) => (
+                              <code className={`rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-indigo-800 ${className || ""}`} {...props}>
+                                {children}
+                              </code>
+                            ),
+                            pre: ({ node, ...props }) => <pre className="my-3 max-w-full overflow-x-auto rounded-xl bg-slate-900 p-4 text-xs text-slate-100" {...props} />,
+                          }}
+                        >
+                          {m.content}
+                        </ReactMarkdown>
+                      </div>
+                      </>
                     )}
-                    <div className="prose prose-sm max-w-none prose-slate">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          table: ({node, ...props}) => (
-                            <div className="my-6 overflow-hidden rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/20 bg-white">
-                              <table className="w-full border-collapse text-[13px]" {...props} />
-                            </div>
-                          ),
-                          th: ({node, ...props}) => (
-                            <th className="bg-slate-900 text-white border-b border-slate-800 px-6 py-4 text-left font-black uppercase tracking-[0.2em] text-[10px] italic" {...props} />
-                          ),
-                          td: ({node, ...props}) => (
-                            <td className="border-b border-slate-50 px-6 py-4 text-slate-700 font-bold italic group-hover:text-indigo-600 transition-colors" {...props} />
-                          ),
-                          h1: ({node, ...props}) => (
-                            <div className="flex items-center gap-3 mt-10 mb-6">
-                              <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-                              <h1 className="text-[18px] font-black text-slate-900 uppercase italic tracking-tighter" {...props} />
-                            </div>
-                          ),
-                          h2: ({node, ...props}) => <h2 className="text-[15px] font-black text-slate-800 mt-8 mb-4 uppercase italic tracking-tight border-b-2 border-slate-100 pb-2" {...props} />,
-                          h3: ({node, ...props}) => <h3 className="text-[12px] font-black text-indigo-600 mt-6 mb-3 uppercase tracking-[0.3em] italic" {...props} />,
-                          p: ({node, ...props}) => <p className="my-2 leading-relaxed text-slate-600" {...props} />,
-                          strong: ({node, ...props}) => <strong className="font-bold text-slate-900" {...props} />,
-                          hr: ({node, ...props}) => <hr className="my-6 border-slate-100" {...props} />,
-                          ul: ({node, ...props}) => <ul className="pl-5 my-3 space-y-1 list-disc text-slate-600" {...props} />,
-                          ol: ({node, ...props}) => <ol className="pl-5 my-3 space-y-1 list-decimal text-slate-600" {...props} />,
-                          li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                          code: ({node, inline, ...props}) => inline
-                            ? <code className="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono text-[11px]" {...props} />
-                            : <pre className="bg-slate-900 p-4 rounded-xl overflow-x-auto my-4 shadow-inner"><code className="text-indigo-300 font-mono text-[11px]" {...props} /></pre>,
-                        }}
-                      >
-                        {m.content}
-                      </ReactMarkdown>
-                    </div>
                   </div>
                 </div>
               ))}
@@ -435,7 +383,7 @@ export default function IntelSidebar({ isOpen, onClose }) {
             </div>
 
             {/* Input Area */}
-            <div className="p-6 border-t border-white/5 bg-white">
+            <div className="border-t border-slate-200 bg-white p-4 sm:p-6">
               <form onSubmit={handleSend} className="relative">
                 <textarea
                   value={input}
@@ -447,12 +395,13 @@ export default function IntelSidebar({ isOpen, onClose }) {
                     }
                   }}
                   placeholder="Ask Intel anything about your hostel..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 pr-14 text-[13px] text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all resize-none min-h-[60px] max-h-[150px]"
+                  className="min-h-[60px] max-h-[150px] w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-4 pr-14 text-[15px] leading-6 text-slate-900 placeholder-slate-500 transition-all focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
                   rows={1}
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || loading}
+                  aria-label="Send message"
                   className={`absolute right-3 bottom-3 p-2.5 rounded-xl transition-all shadow-lg ${
                     input.trim() && !loading 
                       ? 'bg-indigo-600 text-white shadow-indigo-600/30' 
@@ -464,11 +413,11 @@ export default function IntelSidebar({ isOpen, onClose }) {
               </form>
               <div className="flex items-center justify-between mt-4 px-2">
                 <div className="flex gap-4">
-                  <button type="button" onClick={() => setInput("Summarize complaints")} className="text-[10px] font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest">Complaints</button>
-                  <button type="button" onClick={() => setInput("Who are the top debtors?")} className="text-[10px] font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest">Fees</button>
+                  <button type="button" onClick={() => setInput("Summarize complaints")} className="text-xs font-semibold text-slate-600 hover:text-indigo-700">Complaints</button>
+                  <button type="button" onClick={() => setInput("Summarize fee records")} className="text-xs font-semibold text-slate-600 hover:text-indigo-700">Fees</button>
                 </div>
-                <div className="text-[9px] font-bold text-slate-300 flex items-center gap-1 uppercase tracking-widest">
-                  <Zap size={10} className="fill-slate-300" /> Powered by Intel Core
+                <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
+                  <Zap size={12} className="fill-slate-400 text-slate-500" /> Intel
                 </div>
               </div>
             </div>

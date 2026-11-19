@@ -48,6 +48,13 @@ export default function RootLayout({ children }) {
                 <NotificationProvider>
                   <GestureLock />
                   {children}
+                  <div
+                    className="beta-badge fixed bottom-5 right-5 z-[1000] rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[10px] font-extrabold tracking-[0.16em] text-indigo-600 shadow-sm"
+                    role="status"
+                    aria-label="Beta"
+                  >
+                    BETA
+                  </div>
                   <ClientToaster />
                 </NotificationProvider>
               </ToastProvider>

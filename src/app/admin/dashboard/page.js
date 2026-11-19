@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import IntelInsightCard from "@/components/intel/IntelInsightCard";
 const DonutChartContent = memo(function DonutChartContent({ percent, size = 160, strokeWidth = 12 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -113,6 +114,7 @@ const QuickAction = memo(function QuickAction({ label, href, icon: Icon, color }
 import { SkeletonCard, SkeletonHero, Shimmer } from "@/components/ui/Skeleton";
 
 export default function AdminDashboardPage() {
+  const { activeHostelId, role } = useAuth();
   const defaultStats = {
     totalStudents: 0,
     totalRooms: 0,
@@ -362,6 +364,8 @@ export default function AdminDashboardPage() {
               SYNC ACCESS <Zap size={14} className="fill-white" />
             </Link>
           </motion.div>
+
+          <IntelInsightCard hostelId={activeHostelId} role={role} />
 
           <div className="grid grid-cols-1 gap-6">
             <QuickAction label="Initialize Unit" href="/admin/rooms" icon={Plus} color="bg-indigo-600/10 text-indigo-700" />
